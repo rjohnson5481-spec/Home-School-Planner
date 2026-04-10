@@ -2,7 +2,8 @@
 
 ## What was completed this session
 Full Phase 1 build of packages/planner — all 30 files written, committed,
-and pushed to branch `claude/read-claude-docs-er59m`.
+pushed to `claude/read-claude-docs-er59m`, and merged to main by Rob.
+Netlify auto-deployed on merge. Planner is live at /planner.
 
 ### Files built
 **Constants**
@@ -51,24 +52,20 @@ and pushed to branch `claude/read-claude-docs-er59m`.
 
 ## What is currently incomplete or untested
 - **Swap Days feature** — not built; confirm with Rob before starting
-- **Not merged to main** — all work is on `claude/read-claude-docs-er59m`;
-  needs PR review + merge before Netlify auto-deploys
-- **Not smoke-tested in browser** — npm install has not been run this session;
-  no dev server started; no Firestore data verified
+- **Not smoke-tested in browser** — no dev server run this session; golden
+  path (sign in → select day → add subject → edit lesson → done/flag →
+  PDF import) should be walked through before building Phase 2
 - **reward-tracker** — still needs migrating into monorepo structure
 
 ---
 
 ## What the next session should start with
 1. Read CLAUDE.md + HANDOFF.md (required)
-2. Confirm with Rob: merge the planner branch to main, or smoke-test first?
-3. If smoke-testing: `npm install` from repo root, then run planner dev server
-   and walk through the golden path (sign in → select day → add subject →
-   edit lesson → mark done → flag → PDF import)
-4. If merging: open PR from `claude/read-claude-docs-er59m` → main, verify
-   Netlify build succeeds, check /planner route live
-5. After merge: confirm with Rob whether to build Swap Days (Phase 1 step 9)
-   or move to reward-tracker migration
+2. Confirm with Rob: smoke-test the live planner first, or go straight to next feature?
+3. If smoke-testing: walk the golden path on the deployed /planner URL and
+   report any bugs before building anything new
+4. Confirm with Rob: Swap Days (Phase 1 step 9) or reward-tracker migration?
+5. Do not start either until Rob explicitly says which
 
 ---
 
