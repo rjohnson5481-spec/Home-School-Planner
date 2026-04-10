@@ -36,17 +36,25 @@ export function useSubjects(uid, weekId, student) {
     return () => { unsubs.forEach(fn => fn()); setWeekData({}); };
   }, [uid, weekId, student, subjects]);
 
-  // Write a subject's subject list. Firestore listener updates subjects state.
+  // Appends to the subject list only. Never creates cell documents.
+  // Cell documents are created exclusively when a cell is explicitly saved (updateCell).
   function addSubject(subject) {
-    saveSubjectList(uid, student, [...subjects, subject]);
+    return saveSubjectList(uid, student, [...subjects, subject]);
   }
 
   function removeSubject(subject) {
-    saveSubjectList(uid, student, subjects.filter(s => s !== subject));
+    return saveSubjectList(uid, student, subjects.filter(s => s !== subject));
   }
 
+  // Trims text fields before writing so whitespace-only values from schedule
+  // imports never create phantom cell documents in Firestore.
   function updateCell(subject, dayIndex, data) {
-    return dbUpdateCell(uid, weekId, student, subject, dayIndex, data);
+    const cleaned = {
+      ...data,
+      lesson: (data.lesson ?? '').trim(),
+      note:   (data.note   ?? '').trim(),
+    };
+    return dbUpdateCell(uid, weekId, student, subject, dayIndex, cleaned);
   }
 
   return { subjects, weekData, loading, updateCell, addSubject, removeSubject };
