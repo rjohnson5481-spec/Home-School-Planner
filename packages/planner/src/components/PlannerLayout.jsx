@@ -30,14 +30,12 @@ export default function PlannerLayout({
   }
 
   // Writes parsed PDF schedule data into Firestore for the current week.
-  // parsedData shape: { [studentName]: { [subject]: [day0…day4 strings] } }
+  // parsedData shape: { student, weekId, days: [{ dayIndex, lessons: [{ subject, lesson }] }] }
   function handleApplySchedule(parsedData) {
-    const studentData =
-      parsedData[student] ?? parsedData[Object.keys(parsedData)[0]] ?? {};
-    Object.entries(studentData).forEach(([subject, days]) => {
-      if (!subjects.includes(subject)) addSubject(subject);
-      days.forEach((lesson, i) => {
-        if (lesson) updateCell(subject, i, { lesson, note: '', done: false, flag: false });
+    (parsedData.days ?? []).forEach(({ dayIndex, lessons }) => {
+      (lessons ?? []).forEach(({ subject, lesson }) => {
+        if (!subjects.includes(subject)) addSubject(subject);
+        updateCell(subject, dayIndex, { lesson, note: '', done: false, flag: false });
       });
     });
     setShowUpload(false);
