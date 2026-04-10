@@ -50,7 +50,8 @@ All package.json entries use exact versions — no ^ or ~ prefixes.
 
 ## netlify.toml
 [build]
-  command = "npm run build"
+  base = "packages/dashboard"
+  command = "npm install && npm run build"
   publish = "dist"
 
 [[redirects]]
@@ -70,6 +71,8 @@ All package.json entries use exact versions — no ^ or ~ prefixes.
 
 Order is required: /api/* and /planner/* must precede /* or the
 dashboard catch-all swallows them. Never reorder these blocks.
+base = "packages/dashboard" tells Netlify where to run the build command.
+command includes npm install so Netlify installs deps before building.
 
 ---
 
@@ -218,10 +221,11 @@ Before closing, do both of these:
 
 ---
 ## Tools status
-- shared      → ✅ Complete — tokens, fonts, Firebase init, auth hook
-- dashboard   → ✅ Complete — deployed to Netlify, Google auth working, PWA ready
-- planner     → complete and merged to main
+- shared         → ✅ Complete — tokens, fonts, Firebase init, auth hook
+- dashboard      → ✅ Complete — deployed to Netlify, Google auth working, PWA ready
+- planner        → ✅ Complete — merged to main, deployed to /planner
 - reward-tracker → exists, needs migrating into monorepo structure
+
 ## Phase tracking — planner
 Phase 1 — COMPLETE (all code on branch claude/read-claude-docs-er59m):
   ✓ 1. Firebase/Firestore layer (firebase/planner.js)
