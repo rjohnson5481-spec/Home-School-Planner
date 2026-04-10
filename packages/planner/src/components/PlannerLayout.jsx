@@ -11,7 +11,7 @@ import './PlannerLayout.css';
 export default function PlannerLayout({
   user,
   weekDates, prevWeek, nextWeek,
-  subjects, weekData, subjectsLoading, updateCell, addSubject,
+  subjects, dayData, subjectsLoading, updateCell, addSubject,
   pdfImport,
   student, setStudent,
   day, setDay,
@@ -20,21 +20,21 @@ export default function PlannerLayout({
   showAddSubject, setShowAddSubject,
 }) {
   function handleToggleDone(subject) {
-    const cell = weekData[subject]?.[day] ?? {};
+    const cell = dayData[subject] ?? {};
     updateCell(subject, day, { ...cell, done: !cell.done });
   }
 
   function handleToggleFlag(subject) {
-    const cell = weekData[subject]?.[day] ?? {};
+    const cell = dayData[subject] ?? {};
     updateCell(subject, day, { ...cell, flag: !cell.flag });
   }
 
   // Writes parsed PDF schedule data into Firestore for the current week.
   // parsedData shape: { student, weekId, days: [{ dayIndex, lessons: [{ subject, lesson }] }] }
+  // updateCell creates the cell document, so no addSubject call is needed.
   function handleApplySchedule(parsedData) {
     (parsedData.days ?? []).forEach(({ dayIndex, lessons }) => {
       (lessons ?? []).forEach(({ subject, lesson }) => {
-        if (!subjects.includes(subject)) addSubject(subject);
         updateCell(subject, dayIndex, { lesson, note: '', done: false, flag: false });
       });
     });
@@ -63,7 +63,7 @@ export default function PlannerLayout({
               <SubjectCard
                 key={subject}
                 subject={subject}
-                data={weekData[subject]?.[day]}
+                data={dayData[subject]}
                 onEdit={() => setEditTarget({ subject, day })}
                 onToggleDone={() => handleToggleDone(subject)}
                 onToggleFlag={() => handleToggleFlag(subject)}
@@ -81,7 +81,7 @@ export default function PlannerLayout({
       {editTarget && (
         <EditSheet
           subject={editTarget.subject}
-          data={weekData[editTarget.subject]?.[editTarget.day]}
+          data={dayData[editTarget.subject]}
           onSave={data => { updateCell(editTarget.subject, editTarget.day, data); setEditTarget(null); }}
           onClose={() => setEditTarget(null)}
         />
