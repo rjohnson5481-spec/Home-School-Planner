@@ -1,94 +1,122 @@
 # HANDOFF — end of session 2026-04-10
 
 ## What was completed this session
-Two bug fixes and a full data model redesign. All changes committed and
-pushed directly to main. Netlify auto-deploys on push.
+Three bug fixes and two new features. All changes committed and pushed
+directly to main in four separate commits.
 
-### Bug fix 1 — addSubject no longer pre-populates future days
-`hooks/useSubjects.js` — removed logic that wrote empty cell docs to all
-5 days when a subject was added. addSubject now only writes to the subject
-list doc. (This was resolved before the model redesign made it moot.)
+---
 
-### Bug fix 2 — PDF parser overhaul
-`netlify/functions/parse-schedule.js` — complete rewrite of the system
-prompt and response handler for BJU Homeschool Hub "Print By Day" format.
-New output shape: `{ student, weekId, days: [{ dayIndex, lessons: [{ subject, lesson }] }] }`
-Consumers updated: PlannerLayout.jsx handleApplySchedule and UploadSheet.jsx
-result summary display.
+### Fix 1 + Fix 2 — PDF import writes to correct week and student
+**Commit: `9f03b62`**
 
-### Data model redesign — per-day implicit subjects (3 batches)
-This is a breaking change to the Firestore data model. Subjects are now
-per-day and implicit — a subject exists on a day only when its cell document
-exists. No global subject list.
+Problem: `handleApplySchedule` called `updateCell`, which uses the hook's
+closed-over `weekId` and `student`. PDF data (which includes `parsedData.weekId`
+and `parsedData.student`) was silently ignored — it always wrote to the
+currently-viewed week/student.
 
-**New Firestore path:**
-```
-/users/{uid}/weeks/{weekId}/students/{studentName}/days/{dayIndex}/subjects/{subjectName}
-  → { lesson, note, done, flag }
-```
-dayIndex and subject are swapped vs the old path. This enables a simple
-`collection()` query to get all subjects for a given day.
+Solution: Added `importCell(importWeekId, importStudent, subject, dayIndex, data)`
+to `useSubjects.js` — same logic as `updateCell` but takes an explicit
+weekId/student. After writing all cells, calls `jumpToWeek(parsedData.weekId)`
+and `setStudent(parsedData.student)` so the UI navigates to show the result.
 
-**Files changed (3 batches, each committed separately):**
+Also added `jumpToWeek` (= `setWeekId`) to `useWeek.js`.
 
-Batch 1 — data layer:
-- `packages/planner/src/constants/firestore.js` — removed subjectListPath,
-  old subjectPath/dayPath; added daySubjectsPath and cellPath (new order)
-- `packages/planner/src/firebase/planner.js` — removed subscribeSubjectList,
-  saveSubjectList, subscribeDayData; added subscribeDaySubjects, deleteCell;
-  updated updateCell to write to new cellPath
+Files changed:
+- `hooks/useWeek.js` — added `jumpToWeek: setWeekId` to return
+- `hooks/useSubjects.js` — added `importCell` function
+- `App.jsx` — destructures and passes `jumpToWeek`, `importCell`
+- `components/PlannerLayout.jsx` — receives both; `handleApplySchedule` updated
 
-Batch 2 — hook + wiring:
-- `packages/planner/src/hooks/useSubjects.js` — new signature
-  useSubjects(uid, weekId, student, day); single subscription to
-  subscribeDaySubjects; subjects = Object.keys(dayData); addSubject creates
-  a cell (which IS the subject); removeSubject deletes the cell; updateCell
-  keeps dayIndex param so PDF import can write to any day
-- `packages/planner/src/App.jsx` — passes ui.day to useSubjects;
-  passes dayData={dayData} to PlannerLayout
+---
 
-Batch 3 — component:
-- `packages/planner/src/components/PlannerLayout.jsx` — weekData → dayData
-  throughout; handleToggleDone/handleToggleFlag use dayData[subject] ??
-  instead of weekData[subject]?.[day]; handleApplySchedule no longer calls
-  addSubject (updateCell creates the cell); SubjectCard and EditSheet data
-  props use dayData[subject] directly
+### Fix 3 — Subject card lesson text clamped
+**Commit: `12844ef`**
+
+Problem: cards could grow to unbounded height with long lesson text.
+
+Solution: CSS `-webkit-line-clamp: 3` on `.subject-card-lesson`,
+`-webkit-line-clamp: 2` on `.subject-card-note`. Full text remains in the
+DOM and is visible in the edit sheet when the card is tapped.
+
+Files changed:
+- `components/SubjectCard.css`
+
+---
+
+### Feature: Delete Week
+**Commit: `fede4d7`**
+
+`deleteWeek(uid, weekId, student)` added to `firebase/planner.js` — queries
+all 5 days in parallel with `getDocs`, then deletes all subject documents
+in parallel. A `deleteWeek()` wrapper in `useSubjects.js` closes over the
+current uid/weekId/student.
+
+"Clear Week" button appears below the subject list when at least one subject
+exists on the current day. Tapping shows a `window.confirm` dialog before
+proceeding. Current day's cards disappear immediately via the live subscription.
+
+Files changed:
+- `firebase/planner.js` — `deleteWeek`, imports `getDocs`
+- `hooks/useSubjects.js` — wrapper + export
+- `App.jsx` — destructures and passes `deleteWeek`
+- `components/PlannerLayout.jsx` — `handleDeleteWeek`, Clear Week button
+- `components/PlannerLayout.css` — `.planner-clear-btn` style
+
+---
+
+### Feature: Month picker
+**Commit: `e5c7938`**
+
+"Cal" button in the header opens a calendar bottom sheet. Shows one month at
+a time with prev/next arrows. Weekdays in the currently-selected week are
+highlighted with a Mon-Fri band (forest-pale background). Today gets a gold
+outline. Weekend cells are muted and not tappable.
+
+Tapping a weekday: closes the sheet, calls `jumpToWeek(toWeekId(getMondayOf(date)))`,
+and calls `setDay(date.getDay() - 1)` to select that specific day.
+
+New files:
+- `constants/months.js` — MONTH_NAMES, getCalendarGrid(year, month)
+- `components/MonthSheet.jsx` — calendar bottom sheet component
+- `components/MonthSheet.css` — styles
+
+Modified files:
+- `hooks/usePlannerUI.js` — added `showMonthPicker` / `setShowMonthPicker`
+- `components/Header.jsx` — added `onCalendar` prop and Cal button
+- `components/PlannerLayout.jsx` — MonthSheet import, `handleMonthDaySelect`,
+  renders `<MonthSheet>` when `showMonthPicker`, passes `weekId` and `onCalendar`
 
 ---
 
 ## What is currently incomplete or untested
-- **Not smoke-tested in browser** — the new data model has not been walked
-  through on a live device. Before building any new features, the golden
-  path should be verified:
-  1. Sign in
-  2. Select a day
-  3. Add a subject — confirm it appears only on that day
-  4. Switch days — confirm the subject is NOT on other days
-  5. Add the same subject on another day — confirm it appears on both
-  6. Edit a cell, toggle done/flag
-  7. PDF import — confirm lessons land on the correct days
-  8. Remove a subject on one day — confirm other days unaffected
-- **Orphaned Firestore data** — old documents at the old paths are still
-  in Firestore but are never read or written. Can be manually deleted from
-  the Firebase console (no migration script needed). See CLAUDE.md for paths.
+- **Not smoke-tested in browser** — no live device testing this session.
+  Golden path to verify:
+  1. Cal button opens month sheet
+  2. Tap a weekday → planner jumps to that week, correct day tab selected
+  3. Month prev/next arrows navigate correctly
+  4. Selected week band highlights Mon-Fri correctly
+  5. Today's date has gold outline
+  6. Weekends are grey and not tappable
+  7. PDF import: uploading Orion's schedule while viewing Malachi → writes
+     to Orion's week (from PDF), navigates to that week/student automatically
+  8. Clear Week: confirmation shows → confirming clears all days for student+week
+  9. Subject cards: long lesson text truncates after 3 lines; full text in edit sheet
 - **reward-tracker** — still needs migrating into monorepo structure
 
 ---
 
 ## What the next session should start with
 1. Read CLAUDE.md + HANDOFF.md (required)
-2. Confirm with Rob: smoke-test the live planner first, or go straight to next task?
-3. If smoke-testing: walk the golden path (see checklist above) on the deployed
-   /planner URL and report any issues before building anything new
-4. If issues found: fix them before moving on
-5. Only after smoke-test passes: confirm with Rob what comes next
+2. Confirm with Rob: smoke-test the live planner, or go straight to next feature?
+3. If smoke-testing: walk the golden path above; report issues before building
+4. Only after smoke-test passes (or Rob says skip): confirm what comes next
 
 ---
 
 ## Decisions made this session (already added to CLAUDE.md)
-- Subjects are now per-day and implicit — no global subject list document
-- New Firestore path has dayIndex BEFORE subject to enable simple collection query
-- useSubjects hook signature changed to useSubjects(uid, weekId, student, day)
-- updateCell keeps (subject, dayIndex, data) signature — PDF import needs it
-- addSubject in hook always writes to current day (from hook closure)
-- Old Firestore paths are orphaned — no migration, manual Firebase console cleanup
+- `importCell(weekId, student, subject, dayIndex, data)` in useSubjects — explicit
+  weekId/student bypass for PDF import; `updateCell` hook closure version unchanged
+- `jumpToWeek` = raw `setWeekId` exposed from useWeek; callers pass valid weekId strings
+- Delete Week uses parallel getDocs + parallel deleteDoc (no batch write needed at this scale)
+- Month picker display state (year/month) is local to MonthSheet, initialized from weekId prop
+- "Cal" used as header button label (text, not emoji) per design rules

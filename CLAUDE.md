@@ -142,10 +142,13 @@ packages/planner/src/
 │   ├── UploadSheet.jsx          # PDF import: picker → spinner → result (~80 lines)
 │   ├── UploadSheet.css          # upload sheet styles (~155 lines)
 │   ├── AddSubjectSheet.jsx      # preset grid + custom input (~65 lines)
-│   └── AddSubjectSheet.css      # add sheet styles (~115 lines)
+│   ├── AddSubjectSheet.css      # add sheet styles (~115 lines)
+│   ├── MonthSheet.jsx           # calendar bottom sheet, week jump (~75 lines)
+│   └── MonthSheet.css           # month sheet styles (~60 lines)
 └── constants/
     ├── subjects.js              # SUBJECT_PRESETS array (~19 lines)
     ├── days.js                  # DAY_NAMES, DAY_SHORT, date helpers (~46 lines)
+    ├── months.js                # MONTH_NAMES, getCalendarGrid (~18 lines)
     ├── routes.js                # ROUTES object (~5 lines)
     └── firestore.js             # Firestore path builder functions (~18 lines)
 
@@ -249,6 +252,10 @@ Phase 1 — COMPLETE:
   ✓ 9. Deploy config (netlify.toml redirects, dashboard outDir)
   ✓ 10. Bug fix: addSubject no longer pre-populates future days
   ✓ 11. Data model redesign: per-day implicit subjects (3 batches, main)
+  ✓ 12. Bug fix: PDF import uses parsedData.weekId/student (importCell + jumpToWeek)
+  ✓ 13. Bug fix: subject card lesson clamped to 3 lines, note to 2 lines
+  ✓ 14. Feature: Delete Week — clears all cells for current student+week
+  ✓ 15. Feature: Month picker — calendar bottom sheet, tapping weekday jumps to week
 
 Phase 2 (do not build yet):
   - Auto-roll flagged lessons to next week
