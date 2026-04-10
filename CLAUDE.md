@@ -185,12 +185,11 @@ Before closing, do both of these:
 4. Identify which files will be touched before writing any code
 
 ---
-
 ## Tools status
+- shared          → Phase 1 complete — tokens, fonts, Firebase init, auth hook
 - dashboard       → Phase 1 — not started
 - planner         → Phase 1 — not started
 - reward-tracker  → exists, needs migrating into monorepo structure
-
 ## Phase tracking — planner
 Phase 1 (current):
   1. Firebase init + Auth
