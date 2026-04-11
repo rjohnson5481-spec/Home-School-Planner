@@ -1,41 +1,43 @@
-/* Parchment & Forest Design System — color tokens */
+/* Ink & Gold Design System — color tokens */
 /* Toggle data-mode="light" or data-mode="dark" on <html> */
 
 :root,
 [data-mode="light"] {
-  --bg-base:       #f5f0e8;
-  --bg-surface:    #ece6d8;
-  --bg-card:       #faf7f2;
-  --bg-card-hover: #f0ebe0;
-  --border:        #d6cdb8;
-  --border-light:  #e8e0cc;
-  --forest:        #2d5a3d;
-  --forest-light:  #3d7a52;
-  --forest-pale:   rgba(45, 90, 61, 0.08);
-  --gold:          #8a6a20;
-  --gold-light:    #b8922a;
+  --bg-base:       #f2f0ed;
+  --bg-surface:    #ebe8e3;
+  --bg-card:       #ffffff;
+  --bg-card-hover: #faf8f5;
+  --border:        #eae6e0;
+  --border-light:  #f0ece6;
+  --ink:           #22252e;
+  --ink-light:     #3a3d48;
+  --gold:          #c9a84c;
+  --gold-light:    #e8c97a;
+  --gold-pale:     rgba(201, 168, 76, 0.10);
   --red:           #c0392b;
-  --text-primary:  #2a2418;
-  --text-secondary:#5a4e38;
-  --text-muted:    #8a7a60;
+  --red-lt:        #fdf0ed;
+  --text-primary:  #2a2520;
+  --text-secondary:#5a5248;
+  --text-muted:    #a8a09a;
 }
 
 [data-mode="dark"] {
-  --bg-base:       #1a2018;
-  --bg-surface:    #202820;
-  --bg-card:       #263024;
-  --bg-card-hover: #2e3a2c;
-  --border:        #3a4838;
-  --border-light:  #445442;
-  --forest:        #3a7a50;
-  --forest-light:  #4e9e68;
-  --forest-pale:   rgba(78, 158, 104, 0.12);
+  --bg-base:       #1c1e24;
+  --bg-surface:    #22252e;
+  --bg-card:       #2a2d35;
+  --bg-card-hover: #32353f;
+  --border:        #363944;
+  --border-light:  #3a3d48;
+  --ink:           #3a3d48;
+  --ink-light:     #4a4e5a;
   --gold:          #c9a84c;
   --gold-light:    #e8c97a;
+  --gold-pale:     rgba(201, 168, 76, 0.12);
   --red:           #e05252;
-  --text-primary:  #e8f0e4;
-  --text-secondary:#a0b89a;
-  --text-muted:    #607860;
+  --red-lt:        rgba(224, 82, 82, 0.10);
+  --text-primary:  #e8e8e8;
+  --text-secondary:#a0a8b8;
+  --text-muted:    #5a6070;
 }
 
 /* Smooth color mode transitions */
@@ -43,4 +45,22 @@
 *::before,
 *::after {
   transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+}
+
+/* ── Session 1 backward-compat aliases ──────────────────────────────────────
+   Existing components still reference --forest, --forest-light, --forest-pale.
+   Map them to Ink & Gold equivalents so the app stays coherent during migration.
+   Session 2 will replace each var(--forest) reference directly, then remove these.
+   ─────────────────────────────────────────────────────────────────────────── */
+:root,
+[data-mode="light"] {
+  --forest:      var(--gold);
+  --forest-light:var(--gold-light);
+  --forest-pale: var(--gold-pale);
+}
+
+[data-mode="dark"] {
+  --forest:      var(--gold);
+  --forest-light:var(--gold-light);
+  --forest-pale: var(--gold-pale);
 }
