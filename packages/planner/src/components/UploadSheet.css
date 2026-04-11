@@ -186,26 +186,34 @@
 .upload-sheet-lesson-list {
   display: flex;
   flex-direction: column;
-  gap: 2px;
   max-height: calc(6 * 32px);
   overflow-y: auto;
 }
 
+/* One block per day — blank space separates groups */
+.upload-sheet-day-group {
+  margin-bottom: 10px;
+}
+
+.upload-sheet-day-group:last-child {
+  margin-bottom: 0;
+}
+
+/* Bold day label with date: "Mon · Aug 17" */
+.upload-sheet-day-header {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--forest);
+  padding: 2px 0 4px;
+}
+
+/* Indented lesson rows under the day header */
 .upload-sheet-lesson-row {
   display: flex;
   align-items: baseline;
   gap: 8px;
-  padding: 4px 0;
+  padding: 3px 0 3px 12px;
   font-size: 13px;
-}
-
-.upload-sheet-lesson-day {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  color: var(--text-muted);
-  width: 28px;
-  flex-shrink: 0;
 }
 
 .upload-sheet-lesson-subject {

@@ -15,6 +15,12 @@ function formatWeekOf(weekId) {
   return new Date(y, mo - 1, d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
+// Formats a specific day of the week: weekId + dayIndex offset → "Aug 17".
+function formatDayDate(weekId, dayIndex) {
+  const [y, mo, d] = weekId.split('-').map(Number);
+  return new Date(y, mo - 1, d + dayIndex).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
 // Props: pdfImport ({ file, importing, result, error, log, selectFile, importSchedule, addLog }),
 //        onApply(parsedData, wipe), onClose
 export default function UploadSheet({ pdfImport, onApply, onClose }) {
@@ -24,12 +30,12 @@ export default function UploadSheet({ pdfImport, onApply, onClose }) {
   const [applied, setApplied] = useState(false);
   const [showLog, setShowLog] = useState(false);
 
-  const allLessons = result
-    ? (result.days ?? []).flatMap(({ dayIndex, lessons }) =>
-        (lessons ?? []).map(({ subject, lesson }) => ({ dayIndex, subject, lesson }))
-      )
-    : [];
-  const totalDays = result ? (result.days ?? []).filter(d => (d.lessons?.length ?? 0) > 0).length : 0;
+  const totalLessons = result
+    ? (result.days ?? []).reduce((n, d) => n + (d.lessons?.length ?? 0), 0)
+    : 0;
+  const totalDays = result
+    ? (result.days ?? []).filter(d => (d.lessons?.length ?? 0) > 0).length
+    : 0;
 
   function handleApply() {
     setApplied(true);
@@ -100,7 +106,7 @@ export default function UploadSheet({ pdfImport, onApply, onClose }) {
               </div>
             )}
 
-            {/* Parsed result preview */}
+            {/* Parsed result preview — grouped by day */}
             {result && !importing && !applied && (
               <div className="upload-sheet-result">
                 <p className="upload-sheet-result-meta">
@@ -108,20 +114,26 @@ export default function UploadSheet({ pdfImport, onApply, onClose }) {
                 </p>
                 <div className="upload-sheet-divider" />
                 <div className="upload-sheet-lesson-list">
-                  {allLessons.map(({ dayIndex, subject, lesson }, i) => {
-                    const dayNum = extractDayNum(lesson);
-                    return (
-                      <div key={i} className="upload-sheet-lesson-row">
-                        <span className="upload-sheet-lesson-day">{DAY_SHORT[dayIndex]}</span>
-                        <span className="upload-sheet-lesson-subject">{subject}</span>
-                        {dayNum && <span className="upload-sheet-lesson-num">Day {dayNum}</span>}
+                  {(result.days ?? []).map(({ dayIndex, lessons }) => (
+                    <div key={dayIndex} className="upload-sheet-day-group">
+                      <div className="upload-sheet-day-header">
+                        {DAY_SHORT[dayIndex]} · {formatDayDate(result.weekId, dayIndex)}
                       </div>
-                    );
-                  })}
+                      {(lessons ?? []).map(({ subject, lesson }, i) => {
+                        const dayNum = extractDayNum(lesson);
+                        return (
+                          <div key={i} className="upload-sheet-lesson-row">
+                            <span className="upload-sheet-lesson-subject">{subject}</span>
+                            {dayNum && <span className="upload-sheet-lesson-num">Day {dayNum}</span>}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ))}
                 </div>
                 <div className="upload-sheet-divider" />
                 <p className="upload-sheet-result-footer">
-                  {allLessons.length} lesson{allLessons.length !== 1 ? 's' : ''} across {totalDays} day{totalDays !== 1 ? 's' : ''}
+                  {totalLessons} lesson{totalLessons !== 1 ? 's' : ''} across {totalDays} day{totalDays !== 1 ? 's' : ''}
                 </p>
               </div>
             )}
