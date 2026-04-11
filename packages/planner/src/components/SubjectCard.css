@@ -23,10 +23,10 @@
   color: var(--text-muted);
 }
 
-/* Flagged card gets a red tint to make it visually obvious */
+/* Flagged card: very light red tint as hint; flag badge is the strong visual signal */
 .subject-card--flag {
   border-color: var(--red);
-  background: rgba(192, 57, 43, 0.06);
+  background: rgba(192, 57, 43, 0.04);
 }
 
 /* ── Top row: subject label + indicators + flag ── */
@@ -79,7 +79,7 @@
   transition: color 0.15s;
 }
 
-.subject-card-flag-btn--active { color: var(--gold); }
+.subject-card-flag-btn--active { color: var(--red); }
 
 .subject-card-flag-btn:hover:not(.subject-card-flag-btn--active) {
   color: var(--text-secondary);
