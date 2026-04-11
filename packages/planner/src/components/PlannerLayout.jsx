@@ -7,7 +7,7 @@ import EditSheet       from './EditSheet.jsx';
 import UploadSheet     from './UploadSheet.jsx';
 import AddSubjectSheet from './AddSubjectSheet.jsx';
 import MonthSheet      from './MonthSheet.jsx';
-import { getMondayOf, toWeekId } from '../constants/days.js';
+import { getMondayOf, toWeekId, DAY_SHORT } from '../constants/days.js';
 import './PlannerLayout.css';
 
 export default function PlannerLayout({
@@ -15,7 +15,7 @@ export default function PlannerLayout({
   weekId,
   weekDates, prevWeek, nextWeek,
   subjects, dayData, subjectsLoading, updateCell, addSubject,
-  importCell, jumpToWeek, deleteWeek,
+  importCell, jumpToWeek, deleteWeek, wipeWeek,
   pdfImport,
   student, setStudent,
   day, setDay,
@@ -47,20 +47,26 @@ export default function PlannerLayout({
   }
 
   // Writes parsed PDF schedule data to the week/student named in the PDF.
-  // parsedData shape: { student, weekId, days: [{ dayIndex, lessons: [{ subject, lesson }] }] }
-  // Uses importCell (not updateCell) so data lands in parsedData.weekId/student,
-  // not the currently-viewed week/student. Then navigates there automatically.
-  function handleApplySchedule(parsedData) {
+  // parsedData: { student, weekId, days: [{ dayIndex, lessons: [{ subject, lesson }] }] }
+  // wipe: if true, deletes all existing cells for parsedData.weekId/student first.
+  // Does NOT auto-close — UploadSheet shows a success state; user closes manually.
+  async function handleApplySchedule(parsedData, wipe) {
+    pdfImport.addLog(`Applying — student: ${parsedData.student}, week: ${parsedData.weekId}${wipe ? ', wipe: true' : ''}`);
+    if (wipe) {
+      pdfImport.addLog('Wiping existing week...');
+      await wipeWeek(parsedData.weekId, parsedData.student);
+      pdfImport.addLog('Wipe complete.');
+    }
     (parsedData.days ?? []).forEach(({ dayIndex, lessons }) => {
       (lessons ?? []).forEach(({ subject, lesson }) => {
+        pdfImport.addLog(`→ ${DAY_SHORT[dayIndex]}: ${subject} · ${lesson}`);
         importCell(parsedData.weekId, parsedData.student, subject, dayIndex,
           { lesson, note: '', done: false, flag: false });
       });
     });
     jumpToWeek(parsedData.weekId);
     setStudent(parsedData.student);
-    setShowUpload(false);
-    pdfImport.reset();
+    pdfImport.addLog(`Navigation: jumped to ${parsedData.weekId}, student=${parsedData.student}`);
   }
 
   return (

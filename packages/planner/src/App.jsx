@@ -16,7 +16,7 @@ export default function App() {
   const ui = usePlannerUI();
   const {
     subjects, dayData, loading: subjectsLoading,
-    updateCell, addSubject, removeSubject, importCell, deleteWeek,
+    updateCell, addSubject, removeSubject, importCell, deleteWeek, wipeWeek,
   } = useSubjects(user?.uid, weekId, ui.student, ui.day);
   const pdfImport = usePdfImport();
 
@@ -43,6 +43,7 @@ export default function App() {
       importCell={importCell}
       jumpToWeek={jumpToWeek}
       deleteWeek={deleteWeek}
+      wipeWeek={wipeWeek}
       pdfImport={pdfImport}
       {...ui}
     />

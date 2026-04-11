@@ -63,6 +63,11 @@ export function useSubjects(uid, weekId, student, day) {
     return dbUpdateCell(uid, importWeekId, importStudent, subject, dayIndex, cleaned);
   }
 
+  // Deletes all cells for an explicit weekId+student — used by PDF import wipe.
+  function wipeWeek(targetWeekId, targetStudent) {
+    return dbDeleteWeek(uid, targetWeekId, targetStudent);
+  }
+
   const subjects = Object.keys(dayData);
-  return { subjects, dayData, loading, updateCell, addSubject, removeSubject, importCell, deleteWeek };
+  return { subjects, dayData, loading, updateCell, addSubject, removeSubject, importCell, deleteWeek, wipeWeek };
 }
