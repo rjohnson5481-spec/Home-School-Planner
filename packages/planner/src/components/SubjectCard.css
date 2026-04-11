@@ -1,21 +1,22 @@
 .subject-card {
   background: var(--bg-card);
   border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 16px;
+  border-radius: 13px;
+  padding: 12px 14px 14px;
   cursor: pointer;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
-  transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s, opacity 0.2s, background 0.2s;
+  box-shadow: 0 1px 4px rgba(34, 37, 46, .07), 0 2px 8px rgba(34, 37, 46, .04);
+  transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s, background 0.2s;
 }
 
 .subject-card:hover {
-  border-color: var(--forest-light);
-  box-shadow: 0 4px 16px rgba(45, 90, 61, 0.12);
+  border-color: var(--gold-light);
+  box-shadow: 0 4px 16px rgba(34, 37, 46, .10);
   transform: translateY(-1px);
 }
 
+/* Done state: faint warm tint + strikethrough */
 .subject-card--done {
-  opacity: 0.6;
+  background: #fdfcf8;
 }
 
 .subject-card--done .subject-card-lesson {
@@ -23,26 +24,26 @@
   color: var(--text-muted);
 }
 
-/* Flagged card: very light red tint as hint; flag badge is the strong visual signal */
+/* Flagged card: very light red tint */
 .subject-card--flag {
   border-color: var(--red);
-  background: rgba(192, 57, 43, 0.04);
+  background: #fdf8f7;
 }
 
-/* ── Top row: subject label + indicators + flag ── */
+/* ── Top row: subject label + indicators ── */
 .subject-card-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .subject-card-name {
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.09em;
   text-transform: uppercase;
-  color: var(--text-secondary);
+  color: var(--ink);
 }
 
 /* Wrapper for note dot + flag button */
@@ -52,7 +53,7 @@
   gap: 6px;
 }
 
-/* 8×8 note indicator dot — always visible */
+/* 8×8 note indicator dot */
 .subject-card-note-dot {
   width: 8px;
   height: 8px;
@@ -64,22 +65,27 @@
 }
 
 .subject-card-note-dot--active {
-  background: var(--forest);
-  border-color: var(--forest);
+  background: var(--gold);
+  border-color: var(--gold);
 }
 
 .subject-card-flag-btn {
   background: none;
-  border: none;
-  font-size: 16px;
+  border: 1px solid transparent;
+  font-size: 15px;
   color: var(--text-muted);
   cursor: pointer;
-  padding: 2px 4px;
+  padding: 2px 5px;
   line-height: 1;
-  transition: color 0.15s;
+  border-radius: 4px;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
 
-.subject-card-flag-btn--active { color: var(--red); }
+.subject-card-flag-btn--active {
+  background: var(--red-lt);
+  border-color: #f5cfc6;
+  color: var(--red);
+}
 
 .subject-card-flag-btn:hover:not(.subject-card-flag-btn--active) {
   color: var(--text-secondary);
@@ -87,23 +93,25 @@
 
 /* ── Lesson ── */
 .subject-card-lesson {
-  font-size: 15px;
+  font-size: 14px;
   color: var(--text-primary);
-  line-height: 1.4;
+  line-height: 1.55;
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 3;
   overflow: hidden;
+  margin: 0;
 }
 
 .subject-card-empty {
+  font-size: 12px;
+  font-weight: 300;
   color: var(--text-muted);
-  font-style: italic;
 }
 
 /* ── Footer: done toggle ── */
 .subject-card-footer {
-  margin-top: 12px;
+  margin-top: 10px;
 }
 
 .subject-card-done-btn {
@@ -120,13 +128,13 @@
 }
 
 .subject-card-done-btn--active {
-  background: var(--forest-pale);
-  border-color: var(--forest);
-  color: var(--forest);
+  background: var(--gold-pale);
+  border-color: var(--gold);
+  color: #8a6a20;
   font-weight: 600;
 }
 
 .subject-card-done-btn:hover:not(.subject-card-done-btn--active) {
-  border-color: var(--forest);
-  color: var(--forest);
+  border-color: var(--gold);
+  color: var(--gold);
 }
