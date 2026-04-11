@@ -72,8 +72,10 @@ export function useSubjects(uid, weekId, student, day) {
   // overwrite=true: always write (wipe mode — used after deleteWeek).
   // overwrite=false: skip cells that already exist (merge mode — default).
   async function importCell(importWeekId, importStudent, subject, dayIndex, data, overwrite) {
+    console.log('[importCell]', subject, 'day', dayIndex, '— overwrite:', overwrite);
     if (!overwrite) {
       const existing = await dbReadCell(uid, importWeekId, importStudent, dayIndex, subject);
+      console.log('[importCell]', subject, 'day', dayIndex, '— existing:', existing ? 'FOUND → skipping' : 'null → will write');
       if (existing) return;
     }
     const cleaned = {

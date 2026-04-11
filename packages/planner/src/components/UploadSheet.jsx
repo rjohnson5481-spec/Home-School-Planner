@@ -38,6 +38,7 @@ export default function UploadSheet({ pdfImport, onApply, onClose }) {
     : 0;
 
   function handleApply() {
+    console.log('[UploadSheet] handleApply — wipe:', wipe);
     setApplied(true);
     onApply(result, wipe);
   }
