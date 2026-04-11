@@ -57,6 +57,15 @@ export function writeSickDay(uid, dateString, student, subjectsShifted) {
   return setDoc(doc(db, sickDayPath(uid, dateString)), { student, date: dateString, subjectsShifted });
 }
 
+// Reads all subjects present on a specific day as a one-time snapshot (not reactive).
+// Returns: { [subject]: { lesson, note, done, flag } }
+export async function readDaySubjectsOnce(uid, weekId, student, dayIndex) {
+  const snap = await getDocs(collection(db, daySubjectsPath(uid, weekId, student, dayIndex)));
+  const data = {};
+  snap.forEach(d => { data[d.id] = d.data(); });
+  return data;
+}
+
 // Reads one sick day marker. Returns data or null if not found.
 export async function readSickDay(uid, dateString) {
   const snap = await getDoc(doc(db, sickDayPath(uid, dateString)));

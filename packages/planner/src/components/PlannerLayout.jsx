@@ -18,6 +18,7 @@ export default function PlannerLayout({
   subjects, dayData, subjectsLoading, updateCell, addSubject,
   importCell, jumpToWeek, deleteWeek, wipeWeek,
   performSickDay, performUndoSickDay, sickDayIndices,
+  loadWeekDataFrom,
   pdfImport,
   student, setStudent,
   day, setDay,
@@ -233,6 +234,8 @@ export default function PlannerLayout({
           dayData={dayData}
           dayName={DAY_NAMES[day]}
           day={day}
+          weekDates={weekDates}
+          loadWeekDataFrom={loadWeekDataFrom}
           onConfirm={handleSickDayConfirm}
           onClose={() => setShowSickDay(false)}
         />

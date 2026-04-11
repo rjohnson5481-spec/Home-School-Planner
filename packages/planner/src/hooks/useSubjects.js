@@ -5,6 +5,7 @@ import {
   deleteCell as dbDeleteCell,
   deleteWeek as dbDeleteWeek,
   readCell as dbReadCell,
+  readDaySubjectsOnce as dbReadDaySubjectsOnce,
   writeSickDay as dbWriteSickDay,
   readSickDay as dbReadSickDay,
   deleteSickDay as dbDeleteSickDay,
@@ -150,6 +151,14 @@ export function useSubjects(uid, weekId, student, day) {
     await dbDeleteSickDay(uid, dateString);
   }
 
+  // Reads all subject cells for days fromDay through 4 in parallel.
+  // Returns: { [dayIndex]: { [subject]: { lesson, note, done, flag } } }
+  async function loadWeekDataFrom(fromDay) {
+    const days = Array.from({ length: 5 - fromDay }, (_, i) => fromDay + i);
+    const results = await Promise.all(days.map(d => dbReadDaySubjectsOnce(uid, weekId, student, d)));
+    return Object.fromEntries(days.map((d, i) => [d, results[i]]));
+  }
+
   // Set of day indices (0-4) that are sick days for the current student this week.
   const weekDates = getWeekDates(weekId);
   const sickDayIndices = new Set(
@@ -166,5 +175,6 @@ export function useSubjects(uid, weekId, student, day) {
     updateCell, addSubject, removeSubject,
     importCell, deleteWeek, wipeWeek,
     performSickDay, performUndoSickDay, sickDayIndices,
+    loadWeekDataFrom,
   };
 }

@@ -66,19 +66,49 @@
   color: #fff;
 }
 
-.sick-day-prompt {
-  font-size: 13px;
-  color: var(--text-secondary);
-  padding: 10px 20px 4px;
-}
-
 .sick-day-list {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  padding: 4px 12px;
-  max-height: 40vh;
+  padding: 8px 12px 4px;
+  max-height: 48vh;
   overflow-y: auto;
+  gap: 0;
+}
+
+.sick-day-loading {
+  font-size: 13px;
+  color: var(--text-muted);
+  padding: 16px 8px;
+  text-align: center;
+}
+
+/* ── Day group ── */
+.sick-day-group {
+  margin-bottom: 8px;
+}
+
+.sick-day-group:last-child {
+  margin-bottom: 0;
+}
+
+.sick-day-group-header {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--gold);
+  padding: 4px 4px 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sick-day-group-tag {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--red);
+  background: var(--red-lt);
+  border-radius: 4px;
+  padding: 1px 5px;
+  letter-spacing: 0.03em;
 }
 
 .sick-day-item {
