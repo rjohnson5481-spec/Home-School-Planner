@@ -51,3 +51,14 @@
 .day-strip-tab--active .day-strip-date {
   font-weight: 700;
 }
+
+/* Small red dot for sick day marker — positioned top-right of tab */
+.day-strip-sick-dot {
+  position: absolute;
+  top: 5px;
+  right: 8px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--red);
+}

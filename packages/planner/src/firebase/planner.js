@@ -2,9 +2,9 @@
 // No business logic — pure I/O only.
 // All paths from constants/firestore.js — nothing hardcoded here.
 
-import { doc, collection, onSnapshot, setDoc, deleteDoc, getDocs } from 'firebase/firestore';
+import { doc, collection, onSnapshot, setDoc, deleteDoc, getDocs, getDoc } from 'firebase/firestore';
 import { db } from '@homeschool/shared';
-import { daySubjectsPath, cellPath } from '../constants/firestore.js';
+import { daySubjectsPath, cellPath, sickDayPath } from '../constants/firestore.js';
 
 // Subscribes to all subjects present on one day for one student/week.
 // cb receives: { [subject]: { lesson, note, done, flag } }
@@ -27,6 +27,12 @@ export function updateCell(uid, weekId, student, subject, dayIndex, data) {
   return setDoc(ref, data, { merge: true });
 }
 
+// Reads one day cell. Returns data object or null if the document doesn't exist.
+export async function readCell(uid, weekId, student, dayIndex, subject) {
+  const snap = await getDoc(doc(db, cellPath(uid, weekId, student, dayIndex, subject)));
+  return snap.exists() ? snap.data() : null;
+}
+
 // Deletes a cell document — removes a subject from a specific day only.
 export function deleteCell(uid, weekId, student, dayIndex, subject) {
   return deleteDoc(doc(db, cellPath(uid, weekId, student, dayIndex, subject)));
@@ -43,4 +49,24 @@ export async function deleteWeek(uid, weekId, student) {
   return Promise.all(
     snapshots.flatMap(snap => snap.docs.map(d => deleteDoc(d.ref)))
   );
+}
+
+// Writes a sick day marker for a specific date.
+// dateString: "YYYY-MM-DD", subjectsShifted: string[]
+export function writeSickDay(uid, dateString, student, subjectsShifted) {
+  return setDoc(doc(db, sickDayPath(uid, dateString)), { student, date: dateString, subjectsShifted });
+}
+
+// Subscribes to sick day markers for the given week dates.
+// dateStrings: array of "YYYY-MM-DD" strings (Mon-Fri of the current week).
+// cb receives: { [dateString]: { student, date, subjectsShifted[] } }
+export function subscribeSickDays(uid, dateStrings, cb) {
+  const colRef = collection(db, `users/${uid}/sickDays`);
+  return onSnapshot(colRef, snap => {
+    const sickDays = {};
+    snap.forEach(d => {
+      if (dateStrings.includes(d.id)) sickDays[d.id] = d.data();
+    });
+    cb(sickDays);
+  });
 }

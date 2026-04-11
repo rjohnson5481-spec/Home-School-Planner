@@ -17,3 +17,8 @@ export const daySubjectsPath = (uid, weekId, student, dayIndex) =>
 // Individual cell document (one subject on one day).
 export const cellPath = (uid, weekId, student, dayIndex, subject) =>
   `users/${uid}/weeks/${weekId}/students/${student}/days/${dayIndex}/subjects/${subject}`;
+
+// Sick day marker for a specific calendar date.
+// dateString format: "YYYY-MM-DD"
+export const sickDayPath = (uid, dateString) =>
+  `users/${uid}/sickDays/${dateString}`;

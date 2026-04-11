@@ -7,7 +7,8 @@ import EditSheet       from './EditSheet.jsx';
 import UploadSheet     from './UploadSheet.jsx';
 import AddSubjectSheet from './AddSubjectSheet.jsx';
 import MonthSheet      from './MonthSheet.jsx';
-import { getMondayOf, toWeekId, DAY_SHORT } from '../constants/days.js';
+import SickDaySheet    from './SickDaySheet.jsx';
+import { getMondayOf, toWeekId, DAY_SHORT, DAY_NAMES } from '../constants/days.js';
 import './PlannerLayout.css';
 
 export default function PlannerLayout({
@@ -16,6 +17,7 @@ export default function PlannerLayout({
   weekDates, prevWeek, nextWeek,
   subjects, dayData, subjectsLoading, updateCell, addSubject,
   importCell, jumpToWeek, deleteWeek, wipeWeek,
+  performSickDay, sickDayIndices,
   pdfImport,
   student, setStudent,
   day, setDay,
@@ -23,6 +25,7 @@ export default function PlannerLayout({
   showUpload, setShowUpload,
   showAddSubject, setShowAddSubject,
   showMonthPicker, setShowMonthPicker,
+  showSickDay, setShowSickDay,
 }) {
   function handleToggleDone(subject) {
     const cell = dayData[subject] ?? {};
@@ -34,7 +37,6 @@ export default function PlannerLayout({
     updateCell(subject, day, { ...cell, flag: !cell.flag });
   }
 
-  // Tapping a day in the month picker: jump to that week and select that day.
   function handleMonthDaySelect(date) {
     jumpToWeek(toWeekId(getMondayOf(date)));
     setDay(date.getDay() - 1); // JS Mon=1 → dayIndex=0
@@ -46,8 +48,12 @@ export default function PlannerLayout({
     deleteWeek();
   }
 
+  async function handleSickDayConfirm(selectedSubjects) {
+    await performSickDay(selectedSubjects);
+    setShowSickDay(false);
+  }
+
   // Writes parsed PDF schedule data to the week/student named in the PDF.
-  // parsedData: { student, weekId, days: [{ dayIndex, lessons: [{ subject, lesson }] }] }
   // wipe: if true, deletes all existing cells for parsedData.weekId/student first.
   // Does NOT auto-close — UploadSheet shows a success state; user closes manually.
   async function handleApplySchedule(parsedData, wipe) {
@@ -69,6 +75,8 @@ export default function PlannerLayout({
     pdfImport.addLog(`Navigation: jumped to ${parsedData.weekId}, student=${parsedData.student}`);
   }
 
+  const isSickDay = sickDayIndices?.has(day);
+
   return (
     <div className="planner">
       <Header
@@ -83,7 +91,16 @@ export default function PlannerLayout({
       />
 
       <div className="planner-body">
-        <DayStrip dates={weekDates} selected={day} onSelect={setDay} />
+        <DayStrip
+          dates={weekDates}
+          selected={day}
+          onSelect={setDay}
+          sickDayIndices={sickDayIndices}
+        />
+
+        {isSickDay && (
+          <div className="planner-sick-banner">Sick Day</div>
+        )}
 
         <main className="planner-main">
           <div className="planner-subjects">
@@ -104,9 +121,14 @@ export default function PlannerLayout({
             </button>
           )}
           {!subjectsLoading && subjects.length > 0 && (
-            <button className="planner-clear-btn" onClick={handleDeleteWeek}>
-              Clear Week
-            </button>
+            <>
+              <button className="planner-sick-btn" onClick={() => setShowSickDay(true)}>
+                Sick Day
+              </button>
+              <button className="planner-clear-btn" onClick={handleDeleteWeek}>
+                Clear Week
+              </button>
+            </>
           )}
         </main>
       </div>
@@ -123,8 +145,6 @@ export default function PlannerLayout({
       {showUpload && (
         <UploadSheet
           pdfImport={pdfImport}
-          student={student}
-          weekDates={weekDates}
           onApply={handleApplySchedule}
           onClose={() => { setShowUpload(false); pdfImport.reset(); }}
         />
@@ -143,6 +163,16 @@ export default function PlannerLayout({
           weekId={weekId}
           onSelectDay={handleMonthDaySelect}
           onClose={() => setShowMonthPicker(false)}
+        />
+      )}
+
+      {showSickDay && (
+        <SickDaySheet
+          subjects={subjects}
+          dayData={dayData}
+          dayName={DAY_NAMES[day]}
+          onConfirm={handleSickDayConfirm}
+          onClose={() => setShowSickDay(false)}
         />
       )}
     </div>
