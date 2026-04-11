@@ -65,15 +65,11 @@ export default function PlannerLayout({
   // wipe=false: merge only — imported cells are skipped if they already exist.
   // Does NOT auto-close — UploadSheet shows a success state; user closes manually.
   async function handleApplySchedule(parsedData, wipe) {
-    console.log('[PlannerLayout] handleApplySchedule — wipe param received:', wipe);
     pdfImport.addLog(`Applying — student: ${parsedData.student}, week: ${parsedData.weekId}${wipe ? ', wipe: true' : ''}`);
     if (wipe) {
-      console.log('[PlannerLayout] guard entered — calling wipeWeek for', parsedData.weekId, parsedData.student);
       pdfImport.addLog('Wiping existing week...');
       await wipeWeek(parsedData.weekId, parsedData.student);
       pdfImport.addLog('Wipe complete.');
-    } else {
-      console.log('[PlannerLayout] guard skipped — wipe is false, no wipeWeek call');
     }
     const cells = (parsedData.days ?? []).flatMap(({ dayIndex, lessons }) =>
       (lessons ?? []).map(({ subject, lesson }) => ({ dayIndex, subject, lesson }))
