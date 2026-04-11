@@ -1,11 +1,7 @@
+import logo from '@homeschool/shared/assets/logo.png';
 import { signOut } from '@homeschool/shared';
 import { formatWeekLabel } from '../constants/days.js';
 import './Header.css';
-
-// TODO: once packages/shared/src/assets/logo.png exists, replace the .header-logo
-// text box with:
-//   import logo from '@homeschool/shared/assets/logo.png';
-//   <img src={logo} alt="ILA" className="header-logo" />
 
 const STUDENTS = ['Orion', 'Malachi'];
 
@@ -21,7 +17,7 @@ export default function Header({
       {/* Row 1 — brand · week navigation · action buttons */}
       <div className="header-top">
         <div className="header-brand">
-          <div className="header-logo" aria-hidden="true">ILA</div>
+          <img src={logo} alt="ILA" className="header-logo" />
           <div className="header-school">
             <span className="header-school-line1">
               IRON &amp; <span className="header-school-accent">LIGHT</span>
