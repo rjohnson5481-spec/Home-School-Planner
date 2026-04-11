@@ -1,10 +1,11 @@
 /* Total header height: 48px (row 1) + 32px (row 2) = 80px */
+/* Background is always #22252e — fixed in both light and dark mode */
 .header {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  background: var(--forest);
+  background: #22252e;
   z-index: 100;
 }
 
@@ -13,16 +14,25 @@
   height: 48px;
   display: flex;
   align-items: center;
-  padding: 0 16px;
-  gap: 10px;
+  padding: 0 12px;
+  gap: 8px;
 }
 
+/* Brand: logo + school name stack */
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* Logo box — replaced by <img> once logo.png is available */
 .header-logo {
   width: 34px;
   height: 34px;
   border-radius: 8px;
   background: linear-gradient(135deg, #c9a84c, #e8c97a);
-  color: #1a3020;
+  color: #1a1c22;
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -30,8 +40,43 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  object-fit: cover; /* safe for when img replaces div */
 }
 
+.header-school {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.header-school-line1 {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 1;
+}
+
+.header-school-accent { color: #e8c97a; }
+
+.header-school-line2 {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.72);
+  line-height: 1;
+}
+
+.header-school-tagline {
+  font-size: 10px;
+  font-weight: 300;
+  color: rgba(255, 255, 255, 0.35);
+  line-height: 1;
+}
+
+/* Week navigation — centered, flex:1 fills available space */
 .header-week {
   flex: 1;
   display: flex;
@@ -46,8 +91,9 @@
   color: rgba(255, 255, 255, 0.7);
   font-size: 24px;
   line-height: 1;
-  padding: 4px 10px;
+  padding: 4px 8px;
   cursor: pointer;
+  transition: color 0.15s;
 }
 
 .header-nav-btn:hover { color: #fff; }
@@ -57,46 +103,54 @@
   font-weight: 600;
   color: rgba(255, 255, 255, 0.9);
   white-space: nowrap;
-  min-width: 108px;
+  min-width: 100px;
   text-align: center;
 }
 
+/* Action buttons — 32×32 icon pills */
 .header-actions {
   display: flex;
-  gap: 6px;
+  gap: 5px;
   flex-shrink: 0;
 }
 
 .header-btn {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 7px;
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 12px;
-  font-weight: 500;
-  padding: 5px 10px;
+  width: 32px;
+  height: 32px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.65);
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  font-size: 14px;
   font-family: inherit;
-  white-space: nowrap;
+  transition: background 0.15s, color 0.15s;
 }
 
-.header-btn:hover { background: rgba(255, 255, 255, 0.2); }
+.header-btn:hover {
+  background: rgba(255, 255, 255, 0.16);
+  color: rgba(255, 255, 255, 0.9);
+}
 
-/* ── Row 2 ── */
+/* ── Row 2 — student selector ── */
 .header-students {
   height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
 }
 
 .header-student-btn {
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 20px;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(255, 255, 255, 0.55);
   font-size: 12px;
   font-weight: 500;
   padding: 3px 18px;
@@ -106,18 +160,19 @@
 }
 
 .header-student-btn--active {
-  background: rgba(255, 255, 255, 0.2);
-  border-color: rgba(255, 255, 255, 0.4);
-  color: #fff;
+  background: rgba(255, 255, 255, 0.10);
+  border-color: rgba(255, 255, 255, 0.25);
+  color: #e8c97a;
   font-weight: 600;
 }
 
 .header-student-btn:hover:not(.header-student-btn--active) {
-  background: rgba(255, 255, 255, 0.13);
-  color: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.8);
 }
 
+/* Hide school name on very small screens to keep week nav readable */
 @media (max-width: 380px) {
-  .header-week-label { font-size: 11px; min-width: 90px; }
-  .header-btn        { font-size: 11px; padding: 4px 8px; }
+  .header-school     { display: none; }
+  .header-week-label { font-size: 11px; min-width: 88px; }
 }

@@ -2,10 +2,14 @@ import { signOut } from '@homeschool/shared';
 import { formatWeekLabel } from '../constants/days.js';
 import './Header.css';
 
+// TODO: once packages/shared/src/assets/logo.png exists, replace the .header-logo
+// text box with:
+//   import logo from '@homeschool/shared/assets/logo.png';
+//   <img src={logo} alt="ILA" className="header-logo" />
+
 const STUDENTS = ['Orion', 'Malachi'];
 
 // Props: student, onStudentChange, weekDates, prevWeek, nextWeek, onUpload, onCalendar
-// signOut is called directly from shared — no prop needed.
 export default function Header({
   student, onStudentChange,
   weekDates, prevWeek, nextWeek,
@@ -14,24 +18,44 @@ export default function Header({
   return (
     <header className="header">
 
-      {/* Row 1 — logo · week navigation · action buttons */}
+      {/* Row 1 — brand · week navigation · action buttons */}
       <div className="header-top">
-        <div className="header-logo" aria-hidden="true">ILA</div>
+        <div className="header-brand">
+          <div className="header-logo" aria-hidden="true">ILA</div>
+          <div className="header-school">
+            <span className="header-school-line1">
+              IRON &amp; <span className="header-school-accent">LIGHT</span>
+            </span>
+            <span className="header-school-line2">JOHNSON ACADEMY</span>
+            <span className="header-school-tagline">Faith · Knowledge · Strength</span>
+          </div>
+        </div>
 
         <nav className="header-week" aria-label="Week navigation">
-          <button className="header-nav-btn" onClick={prevWeek} aria-label="Previous week">
-            ‹
-          </button>
+          <button className="header-nav-btn" onClick={prevWeek} aria-label="Previous week">‹</button>
           <span className="header-week-label">{formatWeekLabel(weekDates)}</span>
-          <button className="header-nav-btn" onClick={nextWeek} aria-label="Next week">
-            ›
-          </button>
+          <button className="header-nav-btn" onClick={nextWeek} aria-label="Next week">›</button>
         </nav>
 
         <div className="header-actions">
-          <button className="header-btn" onClick={onCalendar} aria-label="Open calendar">📅</button>
-          <button className="header-btn" onClick={onUpload}>Import</button>
-          <button className="header-btn" onClick={() => signOut()}>Sign out</button>
+          <button className="header-btn" onClick={onCalendar} aria-label="Open calendar" title="Calendar">
+            📅
+          </button>
+          <button className="header-btn" onClick={onUpload} aria-label="Import schedule" title="Import schedule">
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M7.5 10.5V3.5M4.5 6.5l3-3 3 3M2.5 13.5h10"/>
+            </svg>
+          </button>
+          <button className="header-btn" aria-label="Settings" title="Settings">
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="7.5" cy="7.5" r="2"/><path d="M7.5 1v2M7.5 12v2M1 7.5h2M12 7.5h2M3.3 3.3l1.4 1.4M10.3 10.3l1.4 1.4M10.3 4.7l-1.4 1.4M4.7 10.3l-1.4 1.4"/>
+            </svg>
+          </button>
+          <button className="header-btn" onClick={() => signOut()} aria-label="Sign out" title="Sign out">
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M10 4.5l3 3-3 3M13 7.5H6M8 2.5H3v10h5"/>
+            </svg>
+          </button>
         </div>
       </div>
 
