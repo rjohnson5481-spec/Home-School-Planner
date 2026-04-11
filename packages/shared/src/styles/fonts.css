@@ -6,3 +6,15 @@
 *::after {
   font-family: 'Lexend', system-ui, sans-serif;
 }
+
+/* Explicitly override browser defaults for form controls */
+input,
+textarea,
+button,
+select {
+  font-family: 'Lexend', system-ui, sans-serif;
+}
+
+body {
+  font-size: 14px;
+}
