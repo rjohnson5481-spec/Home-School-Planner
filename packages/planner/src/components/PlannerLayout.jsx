@@ -15,7 +15,7 @@ export default function PlannerLayout({
   user,
   weekId,
   weekDates, prevWeek, nextWeek,
-  subjects, dayData, subjectsLoading, updateCell, addSubject,
+  subjects, dayData, subjectsLoading, updateCell, addSubject, removeSubject,
   importCell, jumpToWeek, deleteWeek, wipeWeek,
   performSickDay, performUndoSickDay, sickDayIndices,
   loadWeekDataFrom,
@@ -200,6 +200,7 @@ export default function PlannerLayout({
           subject={editTarget.subject}
           data={dayData[editTarget.subject]}
           onSave={data => { updateCell(editTarget.subject, editTarget.day, data); setEditTarget(null); }}
+          onDelete={() => { removeSubject(editTarget.subject); setEditTarget(null); }}
           onClose={() => setEditTarget(null)}
         />
       )}

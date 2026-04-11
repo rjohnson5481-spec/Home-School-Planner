@@ -138,6 +138,29 @@
   font-weight: 600;
 }
 
+/* ── Remove from this day — two-tap delete ── */
+.edit-sheet-delete {
+  width: 100%;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  margin-top: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--red);
+  cursor: pointer;
+  font-family: inherit;
+  text-align: center;
+  transition: background 0.15s, color 0.15s;
+}
+
+.edit-sheet-delete--confirm {
+  background: var(--red);
+  color: #fff;
+  font-weight: 600;
+}
+
 /* ── Footer ── */
 .edit-sheet-footer {
   display: flex;

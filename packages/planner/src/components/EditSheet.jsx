@@ -1,16 +1,35 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import './EditSheet.css';
 
 // Props: subject (string), data ({ lesson, note, done, flag } | undefined),
-//        onSave (fn receives updated data), onClose (fn)
-export default function EditSheet({ subject, data, onSave, onClose }) {
-  const [lesson, setLesson] = useState(data?.lesson ?? '');
-  const [note,   setNote]   = useState(data?.note   ?? '');
-  const [done,   setDone]   = useState(data?.done   ?? false);
-  const [flag,   setFlag]   = useState(data?.flag   ?? false);
+//        onSave(data), onClose, onDelete (optional — if provided, shows delete button)
+export default function EditSheet({ subject, data, onSave, onClose, onDelete }) {
+  const [lesson, setLesson]           = useState(data?.lesson ?? '');
+  const [note,   setNote]             = useState(data?.note   ?? '');
+  const [done,   setDone]             = useState(data?.done   ?? false);
+  const [flag,   setFlag]             = useState(data?.flag   ?? false);
+  const [deleteConfirm, setConfirm]   = useState(false);
+
+  // Reset delete confirm when user taps anywhere else.
+  useEffect(() => {
+    if (!deleteConfirm) return;
+    function reset() { setConfirm(false); }
+    document.addEventListener('click', reset);
+    return () => document.removeEventListener('click', reset);
+  }, [deleteConfirm]);
 
   function handleSave() {
     onSave({ lesson: lesson.trim(), note: note.trim(), done, flag });
+  }
+
+  function handleDeleteClick(e) {
+    e.stopPropagation(); // prevent document listener from resetting immediately
+    if (deleteConfirm) {
+      onDelete();
+      onClose();
+    } else {
+      setConfirm(true);
+    }
   }
 
   return (
@@ -58,6 +77,15 @@ export default function EditSheet({ subject, data, onSave, onClose }) {
               ⚑ {flag ? 'Flagged' : 'Flag'}
             </button>
           </div>
+
+          {onDelete && (
+            <button
+              className={`edit-sheet-delete${deleteConfirm ? ' edit-sheet-delete--confirm' : ''}`}
+              onClick={handleDeleteClick}
+            >
+              {deleteConfirm ? 'Tap again to confirm' : 'Remove from this day'}
+            </button>
+          )}
         </div>
 
         <div className="edit-sheet-footer">
