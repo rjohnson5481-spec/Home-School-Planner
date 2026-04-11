@@ -1,75 +1,91 @@
-# HANDOFF — end of Undo Sick Day session (2026-04-11)
+# HANDOFF — Bug Fix Session (2026-04-11)
 
 ## What was completed this session
 
-One feature commit pushed to main (`618f2a5`).
+Five bug fixes, five commits, all pushed to main.
 
 ---
 
-### Feature: Undo Sick Day
+### Fix 1 — Import merge mode (`8dc3b64`)
+**Bug:** Importing a second PDF overwrote existing cell data (done state, notes)
+even when "Replace existing schedule" toggle was OFF.
 
-When the current day has a sick day marker, the "Sick Day" button in the
-bottom action bar now reads "↩ Undo Sick Day" instead. Tapping it opens a
-confirmation sheet. Confirming reverses the cascade and removes the red dot.
+**Root cause:** `importCell` always wrote to Firestore regardless of whether a
+cell already existed. `handleApplySchedule` used `forEach` with no await.
 
-**Files changed:**
-
-`packages/planner/src/firebase/planner.js`
-- Added `readSickDay(uid, dateString)` — reads the sick day marker doc
-- Added `deleteSickDay(uid, dateString)` — deletes the sick day marker doc
-
-`packages/planner/src/hooks/useSubjects.js`
-- Added `performUndoSickDay()`:
-  1. Reads `subjectsShifted` from the sick day marker for the current day
-  2. For each subject, builds unbroken chain from D+1 forward
-  3. Writes each cell one day back (D+1→D, D+2→D+1, …)
-  4. Deletes the last source cell in the chain
-  5. Deletes the sick day Firestore document
-- Returned from hook alongside `performSickDay`
-
-`packages/planner/src/hooks/usePlannerUI.js`
-- Added `showUndoSickDay` / `setShowUndoSickDay` state
-
-`packages/planner/src/App.jsx`
-- Destructured `performUndoSickDay` from `useSubjects`, passed to PlannerLayout
-
-`packages/planner/src/components/PlannerLayout.jsx`
-- Action bar button is conditional: shows "↩ Undo Sick Day" when `isSickDay`,
-  "Sick Day" otherwise
-- Added `handleUndoSickDay()` handler
-- Inline confirmation sheet: ink header, warning message, Cancel + Undo buttons
-
-`packages/planner/src/components/PlannerLayout.css`
-- Added `.planner-action-btn--undo` (red-lt bg, red text — mirrors Clear Week style)
-- Added full `.undo-sick-*` styles for the confirmation sheet
-  (overlay, slide-up panel, handle, ink header, body, footer, buttons)
+**Fix:**
+- `useSubjects.js`: `importCell` now accepts `overwrite` boolean. When false,
+  reads the cell first and skips the write if it already exists.
+- `PlannerLayout.jsx`: `handleApplySchedule` changed from `forEach` to
+  `await Promise.all(cells.map(...))`. Passes `wipe` as the `overwrite` arg.
 
 ---
 
-## Algorithm notes
+### Fix 2 — Header mobile layout (`c3245df`)
+**Bug:** Settings and sign-out icons not visible on mobile portrait / PWA —
+too many elements in Row 1.
 
-The undo is within-week only — the mirror of the forward cascade.
+**Fix:** Header restructured to 3 rows:
+- Row 1 (48px): Logo + school name (left), 4 icon buttons (right)
+- Row 2 (~52px): ‹ week label › centered, border-top rgba(255,255,255,.07)
+- Row 3 (32px): Student selector pills (unchanged)
 
-Forward (sick day): reads chain from D through D+4, writes in reverse to D+1…,
-drops Friday overflow, deletes sick day cell, writes sick day marker.
+Total header height: 132px.
+- `DayStrip.css`: sticky `top` updated 80px → 132px
+- `PlannerLayout.css`: `margin-top` updated 80px → 132px
 
-Reverse (undo): reads `subjectsShifted` from the marker, builds chain from D+1
-through week (stops at first gap per subject), writes each cell to dayIndex-1,
-deletes the last source cell, deletes the sick day marker.
+---
 
-All chain data is loaded into memory before any writes, so write order doesn't
-matter for correctness.
+### Fix 3 — Undo sick day messaging (`671e2d7`)
+**Fix:** Removed incorrect "Monday → previous Friday" wording. Messages are
+now conditional on `day`:
+- Mon–Thu: "This will shift lessons back one day for the days they were shifted."
+- Friday: "Sick day marker removed. Friday lessons were permanently deleted
+  and cannot be restored."
+
+---
+
+### Fix 4 — Sick day sheet full week view (`ac148a0`)
+**Bug:** Sheet only showed subjects for the sick day itself.
+
+**Fix:** Sheet now loads and displays all lessons from the sick day through
+Friday, grouped by day with gold headers. Checkboxes are per-subject.
+
+New infrastructure:
+- `firebase/planner.js`: `readDaySubjectsOnce` — one-time `getDocs` snapshot
+- `useSubjects.js`: `loadWeekDataFrom(fromDay)` — reads days in parallel,
+  returns `{ [dayIndex]: { [subject]: cellData } }`
+- Wired through `App.jsx` → `PlannerLayout.jsx` → `SickDaySheet`
+- `SickDaySheet.jsx`: full rewrite — loads remaining data on mount, grouped
+  display, sick day tagged with "sick day" badge, Friday shows sick day only
+- `SickDaySheet.css`: group headers, loading state, sick day tag
+
+---
+
+### Fix 5 — Delete subject from day (`9df25c1`)
+**Feature:** "Remove from this day" button in the edit sheet.
+
+- First tap: button turns red, shows "Tap again to confirm"
+- Second tap: calls `removeSubject` for that subject on the current day
+- Tap anywhere else: resets to default (document click listener)
+- Only affects the current day — no other days impacted
+- `removeSubject` is now wired through PlannerLayout (was passed from App
+  but not destructured in PlannerLayout)
 
 ---
 
 ## What is currently incomplete
 
-- **Not smoke-tested in browser** — verify after deploy:
-  1. On a day with a sick day marker: action bar shows "↩ Undo Sick Day"
-  2. On a normal day: action bar shows "Sick Day"
-  3. Tapping "↩ Undo Sick Day" opens the confirmation sheet
-  4. Confirming shifts lessons back, removes red dot from DayStrip
-  5. Cancel closes the sheet without making changes
+- **Not smoke-tested in browser** — verify:
+  1. Fix 1: Import two PDFs without wipe toggle — second import skips existing cells
+  2. Fix 2: Header shows 3 rows on mobile; all 4 icon buttons visible
+  3. Fix 3: Undo confirmation shows correct message for Mon–Thu vs Friday
+  4. Fix 4: Sick day sheet shows all remaining week lessons, grouped by day
+  5. Fix 5: Edit sheet shows "Remove from this day" button with two-tap confirm
+
+- CLAUDE.md header layout section references "2 rows, total 80px" — should be
+  updated to "3 rows, total 132px" (Row 1: brand+buttons 48px, Row 2: week nav
+  52px, Row 3: students 32px)
 
 - **reward-tracker** — still needs migrating into monorepo structure
 
@@ -77,12 +93,7 @@ matter for correctness.
 
 ## What the next session should start with
 
-1. Read CLAUDE.md + HANDOFF.md (required)
-2. Smoke-test Undo Sick Day in the browser
-3. Confirm with Rob: Phase 2 features, reward-tracker migration, or other work?
-
-### Phase 2 options (do not build without Rob's go-ahead)
-- Auto-roll flagged lessons to next week
-- Week history browser
-- Copy last week as template
-- Export week as PDF
+1. Read CLAUDE.md + HANDOFF.md
+2. Smoke-test all five fixes in the browser
+3. Update CLAUDE.md header height note (80px → 132px, 2 rows → 3 rows)
+4. Confirm with Rob: Phase 2 features or reward-tracker migration?
