@@ -22,7 +22,7 @@ export default function App() {
     loadWeekDataFrom,
   } = useSubjects(user?.uid, weekId, ui.student, ui.day);
   const pdfImport = usePdfImport();
-  const { students } = useSettings(user?.uid);
+  const { students, subjectsByStudent } = useSettings(user?.uid, ui.student);
 
   // Unauthenticated users go back to the dashboard sign-in.
   useEffect(() => {
@@ -60,6 +60,7 @@ export default function App() {
       loadWeekDataFrom={loadWeekDataFrom}
       pdfImport={pdfImport}
       students={students}
+      plannerSubjects={subjectsByStudent[ui.student]}
       {...ui}
     />
   );

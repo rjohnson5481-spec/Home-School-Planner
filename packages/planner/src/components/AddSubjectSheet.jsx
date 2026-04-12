@@ -2,11 +2,12 @@ import { useState } from 'react';
 import { SUBJECT_PRESETS } from '../constants/subjects.js';
 import './AddSubjectSheet.css';
 
-// Props: existingSubjects (string[]), onAdd (fn receives subject string), onClose (fn)
-export default function AddSubjectSheet({ existingSubjects, onAdd, onClose }) {
+// Props: existingSubjects (string[]), presets (string[]|undefined), onAdd (fn), onClose (fn)
+// presets: per-student Firestore subjects; falls back to SUBJECT_PRESETS if absent.
+export default function AddSubjectSheet({ existingSubjects, presets, onAdd, onClose }) {
   const [custom, setCustom] = useState('');
 
-  const available = SUBJECT_PRESETS.filter(s => !existingSubjects.includes(s));
+  const available = (presets ?? SUBJECT_PRESETS).filter(s => !existingSubjects.includes(s));
 
   function handleCustomAdd() {
     const trimmed = custom.trim();

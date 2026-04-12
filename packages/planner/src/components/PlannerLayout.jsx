@@ -22,6 +22,7 @@ export default function PlannerLayout({
   loadWeekDataFrom,
   pdfImport,
   students,
+  plannerSubjects,
   student, setStudent,
   day, setDay,
   editTarget, setEditTarget,
@@ -220,6 +221,7 @@ export default function PlannerLayout({
       {showAddSubject && (
         <AddSubjectSheet
           existingSubjects={subjects}
+          presets={plannerSubjects}
           onAdd={subject => { addSubject(subject); setShowAddSubject(false); }}
           onClose={() => setShowAddSubject(false)}
         />

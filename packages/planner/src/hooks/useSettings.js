@@ -6,7 +6,8 @@ import {
 
 // Manages settings state: student list and per-student default subjects.
 // Loads students on mount; loads subjects for activeStudent on demand.
-export function useSettings(uid) {
+// plannerStudent: optional — pre-loads subjects for the current planner student.
+export function useSettings(uid, plannerStudent) {
   const [students, setStudents]               = useState([]);
   const [activeStudent, setActiveStudent]     = useState(null);
   const [subjectsByStudent, setSubjectsByStudent] = useState({});
@@ -29,6 +30,15 @@ export function useSettings(uid) {
     });
   }, [uid, activeStudent]);
 
+  // Pre-load subjects for the planner's current student (may differ from activeStudent tab).
+  useEffect(() => {
+    if (!uid || !plannerStudent) return;
+    if (subjectsByStudent[plannerStudent] !== undefined) return;
+    readSettingsSubjects(uid, plannerStudent).then(subjects => {
+      setSubjectsByStudent(prev => ({ ...prev, [plannerStudent]: subjects }));
+    });
+  }, [uid, plannerStudent]);
+
   // Write student list and update local state.
   async function saveStudents(names) {
     setStudents(names);
@@ -45,6 +55,7 @@ export function useSettings(uid) {
     students,
     activeStudent, setActiveStudent,
     activeSubjects: subjectsByStudent[activeStudent] ?? [],
+    subjectsByStudent,
     saveStudents,
     saveSubjects,
   };
