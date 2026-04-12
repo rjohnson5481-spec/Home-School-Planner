@@ -1,51 +1,45 @@
-# HANDOFF — Import Wipe Bug Diagnosis Session (2026-04-11)
+# HANDOFF — Two Small Fixes (2026-04-12)
 
 ## What was completed this session
 
-### Import merge mode — verified working (`4cefd4e`)
+### Fix 1 — Undo Sick Day button always visible on sick days
 
-**Reported:** Import merge bug allegedly persisting after fix commit `8dc3b64`.
+**Bug:** "↩ Undo Sick Day" button only appeared when subjects were scheduled on
+the sick day. After a sick day cascade the sick day cell is deleted, so the button
+disappeared — making it impossible to undo.
 
-**Diagnosis:** Added console.logs to three locations and tested in production browser:
-- `UploadSheet.jsx` `handleApply` — confirmed `wipe: false` at tap time
-- `PlannerLayout.jsx` `handleApplySchedule` — confirmed guard correctly skipped
-- `useSubjects.js` `importCell` — confirmed existing cells found and skipped
-
-**Console output from browser:**
-```
-[UploadSheet] handleApply — wipe: false
-[PlannerLayout] handleApplySchedule — wipe param received: false
-[PlannerLayout] guard skipped — wipe is false, no wipeWeek call
-[importCell] Reading 3 day 0 — overwrite: false
-[importCell] Reading 3 day 0 — existing: FOUND → skipping
-(same pattern for all cells)
-```
-
-**Conclusion:** The fix in `8dc3b64` is correct and working. The prior "bug persisting"
-report was caused by a stale service worker serving the old cached bundle before
-Netlify completed deploying. No logic changes were needed. Console.logs removed and
-committed clean.
+**Fix:** `PlannerLayout.jsx` action bar restructured. `isSickDay` and `hasSubjects`
+are now independent conditions:
+- `isSickDay && !subjectsLoading` → shows "↩ Undo Sick Day" (no subjects requirement)
+- `!isSickDay && hasSubjects && !subjectsLoading` → shows "Sick Day" + "Clear Week"
 
 ---
 
-## Five fixes from prior session — status
+### Fix 2 — Duplicate "+ Add Subject" button on empty days
 
-Fix 1 (import merge mode): **CONFIRMED WORKING** — verified by console output above.
+**Bug:** When a day had zero subjects, both the empty-state "+ Add Subject" button
+and the regular dashed "+ Add Subject" button rendered at the same time.
 
-Fixes 2–5 still need smoke-testing in browser:
-- Fix 2: Header 3 rows on mobile; all 4 icon buttons visible
-- Fix 3: Undo sick day — correct message for Mon–Thu vs Friday
-- Fix 4: Sick day sheet shows full week grouped by day
-- Fix 5: Edit sheet "Remove from this day" with two-tap confirm
+**Fix:** Dashed add button guard changed from `!subjectsLoading` to
+`!subjectsLoading && hasSubjects`. The empty state already has its own "+ Add Subject"
+button, so the dashed one is only needed when subjects are present.
+
+Both fixes: `PlannerLayout.jsx` — one commit.
 
 ---
 
 ## What is currently incomplete
 
-- Fixes 2–5 not yet smoke-tested in browser
-- CLAUDE.md header layout note says "2 rows, total 80px" — should be
-  "3 rows, total 132px" (Row 1: brand+buttons 48px, Row 2: week nav 52px,
-  Row 3: students 32px). Code already uses 132px — only the doc is wrong.
+- **Smoke-test still needed** for fixes from the prior bug fix session:
+  - Fix 2: Header shows 3 rows on mobile; all 4 icon buttons visible
+  - Fix 3: Undo sick day — correct message for Mon–Thu vs Friday
+  - Fix 4: Sick day sheet shows full week grouped by day with gold headers
+  - Fix 5: Edit sheet "Remove from this day" with two-tap confirm
+  - Fix 1 (undo sick day button): NOW also includes today's visibility fix
+
+- **CLAUDE.md header layout note is outdated:** says "2 rows, total 80px" — code
+  uses 132px (3 rows). Only the doc is wrong.
+
 - **reward-tracker** — still needs migrating into monorepo structure
 
 ---
@@ -53,6 +47,7 @@ Fixes 2–5 still need smoke-testing in browser:
 ## What the next session should start with
 
 1. Read CLAUDE.md + HANDOFF.md
-2. Smoke-test fixes 2–5 in the browser
-3. Update CLAUDE.md header height note (80px → 132px, 2 rows → 3 rows)
-4. Confirm with Rob: Phase 2 features or reward-tracker migration?
+2. Smoke-test the undo sick day button on a real sick day
+3. Smoke-test fixes 2–5 from prior session
+4. Update CLAUDE.md header note (80px → 132px, 2 rows → 3 rows)
+5. Confirm with Rob: Phase 2 features or reward-tracker migration?

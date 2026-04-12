@@ -152,7 +152,7 @@ export default function PlannerLayout({
             ))}
           </div>
 
-          {!subjectsLoading && (
+          {!subjectsLoading && hasSubjects && (
             <button className="planner-add-btn" onClick={() => setShowAddSubject(true)}>
               + Add Subject
             </button>
@@ -162,23 +162,22 @@ export default function PlannerLayout({
 
       {/* Fixed bottom action bar */}
       <div className="planner-action-bar">
-        {hasSubjects && !subjectsLoading && (
+        {isSickDay && !subjectsLoading && (
+          <button
+            className="planner-action-btn planner-action-btn--undo"
+            onClick={() => setShowUndoSickDay(true)}
+          >
+            ↩ Undo Sick Day
+          </button>
+        )}
+        {!isSickDay && hasSubjects && !subjectsLoading && (
           <>
-            {isSickDay ? (
-              <button
-                className="planner-action-btn planner-action-btn--undo"
-                onClick={() => setShowUndoSickDay(true)}
-              >
-                ↩ Undo Sick Day
-              </button>
-            ) : (
-              <button
-                className="planner-action-btn planner-action-btn--sick"
-                onClick={() => setShowSickDay(true)}
-              >
-                Sick Day
-              </button>
-            )}
+            <button
+              className="planner-action-btn planner-action-btn--sick"
+              onClick={() => setShowSickDay(true)}
+            >
+              Sick Day
+            </button>
             <button
               className="planner-action-btn planner-action-btn--clear"
               onClick={handleDeleteWeek}
