@@ -3,9 +3,29 @@
    app.js
    ============================================================ */
 
-'use strict';
+const VERSION = '0.20.2';
 
-const VERSION = '0.20.0';
+const SYSTEM_PROMPT = `You are a teacher question extraction assistant for Teacher Edition PDFs at Iron & Light Johnson Academy.
+
+Given a Teacher Edition PDF and lesson numbers:
+
+STEP 1 — Scan the PDF programmatically to find the page range for each requested lesson. Look for "LESSON [n]" printed at the top of TE pages. If given a calendar image instead, read Day numbers directly — Day number equals Lesson number.
+
+STEP 2 — For each lesson extract:
+QUESTIONS: Only lines ending in ? Copied exactly. No answers, directions, or commentary. Grouped by TE page with TE page number, student page number, and section heading noted.
+VOCABULARY: Words listed under "New" or "Review" labels. Words only, no definitions. Note New vs Review.
+
+STEP 3 — Return a complete, self-contained HTML file with:
+- Lora font (Google Fonts)
+- Logo img src="https://i.imgur.com/9JfGi6d.jpeg" 150px on cover, 32px in footer, onerror hide
+- School name: Iron & Light Johnson Academy | Tagline: Faith · Knowledge · Strength
+- Sticky print bar (hidden on print): school name left, Print button right
+- Cover page: logo, school name, tagline, curriculum info, summary table (Lesson / Story / Student Pages / TE Pages / Questions / Vocabulary count). Page break after.
+- Per lesson: dark green banner (#2d5a3d) with lesson number and story title, meta strip (#f3f8f5) with page info, vocabulary pills (New=filled #2d5a3d white text, Review=outlined #3d7a52 green text), questions grouped by TE page with green TE badge and outlined student page badge, numbered list with green counters
+- Page break after each lesson
+- Print CSS: @page { margin: 1.5cm 2cm; size: letter; } with print-color-adjust: exact
+
+Return ONLY the complete HTML. No markdown fences. No explanation.`;
 
 // ── State ────────────────────────────────────────────────────
 const state = {
@@ -60,7 +80,8 @@ const dom = {
 };
 
 // Stamp version into both displays
-document.getElementById('versionDisplay').textContent = `v${VERSION}`;
+// versionDisplay is inside "TE Extractor v<span>" so inject without the v prefix
+document.getElementById('versionDisplay').textContent = VERSION;
 document.getElementById('sidebarVersion').textContent = `v${VERSION}`;
 
 // ── Tab Navigation ───────────────────────────────────────────
@@ -222,17 +243,7 @@ async function runExtraction() {
     // 2. Read file as base64
     const { base64, mediaType } = await readFileAsBase64(file);
 
-    // 2b. Block files whose base64 size exceeds Netlify's request body limit
-    if (base64.length > 8000000) {
-      dom.splitSection.style.display = 'block';
-      dom.splitSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      throw new Error(
-        'This PDF is too large to process in one request. Please upload a smaller section — ' +
-        'ideally under 50 pages — and try again.'
-      );
-    }
-
-    // 3. Call Netlify Function
+    // 3. Call Anthropic API directly
     const html = await callAPI({ base64, mediaType, lessons, fileName: file.name });
 
     // 4. Validate response
@@ -258,31 +269,48 @@ async function runExtraction() {
   }
 }
 
-// ── API Call via Netlify Function ────────────────────────────
+// ── API Call — direct to Anthropic ───────────────────────────
 async function callAPI({ base64, mediaType, lessons, fileName }) {
-  console.log('[TE Extractor] Sending:', {
-    mediaType,
-    lessons,
-    fileName,
-    fileSize: base64?.length || 0,
-  });
+  const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY;
+  if (!apiKey) {
+    throw new Error('API key not configured. Please contact the administrator.');
+  }
+
+  const isPDF = mediaType === 'application/pdf';
+  const sourceBlock = isPDF
+    ? { type: 'document', source: { type: 'base64', media_type: mediaType, data: base64 } }
+    : { type: 'image',    source: { type: 'base64', media_type: mediaType, data: base64 } };
+  const textBlock = {
+    type: 'text',
+    text: `Extract all teacher questions and vocabulary for lessons: ${lessons}\n\nFile: ${fileName || 'document'}`,
+  };
 
   let response;
   try {
-    response = await fetch('/api/te-extractor', {
+    response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ file: base64, mediaType, lessons, fileName }),
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 8192,
+        system: SYSTEM_PROMPT,
+        messages: [{ role: 'user', content: [sourceBlock, textBlock] }],
+      }),
     });
   } catch (networkErr) {
-    throw new Error(`Network error — could not reach the server. Check your internet connection. (${networkErr.message})`);
+    throw new Error(`Network error — could not reach the Anthropic API. Check your internet connection. (${networkErr.message})`);
   }
 
   if (!response.ok) {
-    let errMsg = `Server error ${response.status}`;
+    let errMsg = `API error ${response.status}`;
     try {
       const errData = await response.json();
-      if (errData.error) errMsg = errData.error;
+      if (errData.error?.message) errMsg = errData.error.message;
     } catch (_) {}
 
     if (response.status === 429) throw new Error('Rate limit exceeded. Please wait a moment and try again.');
@@ -300,8 +328,9 @@ async function callAPI({ base64, mediaType, lessons, fileName }) {
     throw new Error(errMsg);
   }
 
-  const html = await response.text();
-  if (!html) throw new Error('The server returned an empty response. Please try again.');
+  const data = await response.json();
+  const html = data.content?.[0]?.text || '';
+  if (!html) throw new Error('The API returned an empty response. Please try again.');
   return stripMarkdownFences(html);
 }
 

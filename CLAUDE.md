@@ -78,23 +78,29 @@ command includes npm install so Netlify installs deps before building.
 ---
 
 ## Environment variables (Netlify dashboard only — never in code)
-- ANTHROPIC_API_KEY — Netlify Functions only, never client-side
+- ANTHROPIC_API_KEY — Netlify Functions only (parse-schedule), never client-side
+- VITE_ANTHROPIC_API_KEY — TE Extractor only (intentional exception — see below)
 - VITE_FIREBASE_API_KEY 
 - VITE_FIREBASE_AUTH_DOMAIN 
 - VITE_FIREBASE_PROJECT_ID 
 - VITE_FIREBASE_APP_ID 
 
 ## Anthropic API pattern
-Client NEVER calls api.anthropic.com directly.
-All Anthropic calls go through Netlify Functions.
+All Anthropic calls go through Netlify Functions — with one intentional exception (see below).
 Current functions:
 - netlify/functions/parse-schedule.js (planner PDF import)
   Client calls: POST /api/parse-schedule with { file: base64, mediaType }
-- netlify/functions/te-extractor.js (TE Extractor PDF/image processing)
-  Client calls: POST /api/te-extractor with { file: base64, mediaType, lessons, fileName }
-  Returns: text/html on success, application/json { error } on failure
+  Returns: application/json { student, weekId, days }
 Function calls Anthropic API using server-side ANTHROPIC_API_KEY
 Model: claude-sonnet-4-20250514
+
+## TE Extractor — intentional exception to API key rule
+The TE Extractor calls api.anthropic.com directly from the client
+using VITE_ANTHROPIC_API_KEY injected at build time.
+This is intentional — the tool is family-internal, behind Google Auth,
+and will never be public facing. The Netlify Function proxy caused
+gateway timeouts that could not be resolved within Netlify Pro limits.
+Do not revert this to a Netlify Function without Rob's explicit instruction.
 
 ---
 
@@ -304,10 +310,13 @@ Phase 2 (do not build yet):
   - Export week as PDF
 
 ## TE Extractor — architecture notes
-- Vanilla HTML/CSS/JS — no React, no Vite build step
-- Lives at packages/te-extractor/public/; build script: cp -r public/. ../../dist/te-extractor/
+- Vanilla HTML/CSS/JS — Vite build step added for VITE_ env var injection only
+- Lives at packages/te-extractor/public/; Vite builds to ../../dist/te-extractor/
+- vite.config.js at packages/te-extractor/vite.config.js (root: 'public', base: '/te-extractor/')
+- Static assets (manifest.json, sw.js) copied by build script post-Vite
 - Served at /te-extractor/ via netlify.toml redirect
-- API calls routed through netlify/functions/te-extractor.js (never client-side)
+- Calls api.anthropic.com directly using VITE_ANTHROPIC_API_KEY — see exception note above
+- System prompt (SYSTEM_PROMPT const) lives in app.js — not in a Netlify Function
 - System prompt green colors (#2d5a3d) in OUTPUT HTML are intentional — printable doc styling
 - Ink & Gold only applies to the extractor app UI chrome (sidebar, buttons, form)
 - Logo at packages/te-extractor/public/logo.png (copy of shared/src/assets/logo.png)
@@ -320,7 +329,7 @@ Phase 2 (do not build yet):
 - Monorepo, single Netlify site — not GitHub Pages
 - Single Firebase project shared across all tools
 - Google sign-in only — single family account
-- Anthropic API key server-side only — never in client bundle
+- Anthropic API key server-side only — never in client bundle (TE Extractor is the sole exception — family-internal tool, see architecture notes)
 - Mobile-first, max-width 480px on all tools
 - Lexend font only — no serif fonts in the UI
 - Ink & Gold color system only — no new tokens

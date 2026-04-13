@@ -1,8 +1,12 @@
 {
   "name": "@homeschool/te-extractor",
-  "version": "0.19.1",
+  "version": "0.20.2",
   "private": true,
+  "type": "module",
   "scripts": {
-    "build": "mkdir -p ../../dist/te-extractor && cp -r public/. ../../dist/te-extractor/"
+    "build": "vite build && cp public/manifest.json public/sw.js ../../dist/te-extractor/"
+  },
+  "devDependencies": {
+    "vite": "5.4.10"
   }
 }
