@@ -250,6 +250,13 @@ async function runExtraction() {
 
 // ── API Call via Netlify Function ────────────────────────────
 async function callAPI({ base64, mediaType, lessons, fileName }) {
+  console.log('[callAPI] sending —',
+    'mediaType:', mediaType,
+    '| lessons:', JSON.stringify(lessons),
+    '| fileName:', fileName,
+    '| file bytes (base64 len):', base64 ? base64.length : 'MISSING'
+  );
+
   let response;
   try {
     response = await fetch('/api/te-extractor', {

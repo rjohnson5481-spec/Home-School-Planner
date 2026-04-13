@@ -40,14 +40,21 @@ exports.handler = async function (event) {
 
   let body;
   try {
-    body = JSON.parse(event.body);
+    const rawBody = event.isBase64Encoded
+      ? Buffer.from(event.body || '', 'base64').toString('utf-8')
+      : (event.body || '');
+    if (!rawBody) {
+      return { statusCode: 400, body: JSON.stringify({ error: 'Request body is empty' }) };
+    }
+    body = JSON.parse(rawBody);
   } catch {
     return { statusCode: 400, body: JSON.stringify({ error: 'Request body must be valid JSON' }) };
   }
 
-  const { file, mediaType, lessons, fileName } = body;
-  if (!file || !mediaType || !lessons) {
-    return { statusCode: 400, body: JSON.stringify({ error: 'Missing required fields: file, mediaType, lessons' }) };
+  const { file, mediaType, lessons, fileName } = body || {};
+  const missing = [!file && 'file', !mediaType && 'mediaType', !lessons && 'lessons'].filter(Boolean);
+  if (missing.length > 0) {
+    return { statusCode: 400, body: JSON.stringify({ error: `Missing required fields: ${missing.join(', ')}` }) };
   }
 
   try {
