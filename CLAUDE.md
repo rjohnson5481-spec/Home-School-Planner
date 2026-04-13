@@ -20,6 +20,7 @@ Every tool shares the same branding, design system, and Firebase project.
 │   ├── shared/                ← design system, Firebase init, auth, components
 │   ├── dashboard/             ← central home screen, PWA entry point
 │   ├── planner/               ← weekly lesson planner
+│   ├── te-extractor/          ← vanilla HTML/CSS/JS tool, no React, served from dist/te-extractor/
 │   └── reward-tracker/        ← point reward system for Orion and Malachi
 
 ---
@@ -88,7 +89,10 @@ Client NEVER calls api.anthropic.com directly.
 All Anthropic calls go through Netlify Functions.
 Current functions:
 - netlify/functions/parse-schedule.js (planner PDF import)
-Client calls: POST /api/parse-schedule with { file: base64, mediaType }
+  Client calls: POST /api/parse-schedule with { file: base64, mediaType }
+- netlify/functions/te-extractor.js (TE Extractor PDF/image processing)
+  Client calls: POST /api/te-extractor with { file: base64, mediaType, lessons, fileName }
+  Returns: text/html on success, application/json { error } on failure
 Function calls Anthropic API using server-side ANTHROPIC_API_KEY
 Model: claude-sonnet-4-20250514
 
@@ -259,6 +263,7 @@ Before closing, do both of these:
 - shared         → ✅ Complete — tokens, fonts, Firebase init, auth hook
 - dashboard      → ✅ Complete — deployed to Netlify, Google auth working, PWA ready
 - planner        → ✅ Complete — merged to main, deployed to /planner
+- te-extractor   → ✅ Complete — vanilla HTML/CSS/JS, deployed to /te-extractor
 - reward-tracker → exists, needs migrating into monorepo structure
 
 ## Phase tracking — planner
@@ -297,6 +302,17 @@ Phase 2 (do not build yet):
   - Week history browser
   - Copy last week as template
   - Export week as PDF
+
+## TE Extractor — architecture notes
+- Vanilla HTML/CSS/JS — no React, no Vite build step
+- Lives at packages/te-extractor/public/; build script: cp -r public/. ../../dist/te-extractor/
+- Served at /te-extractor/ via netlify.toml redirect
+- API calls routed through netlify/functions/te-extractor.js (never client-side)
+- System prompt green colors (#2d5a3d) in OUTPUT HTML are intentional — printable doc styling
+- Ink & Gold only applies to the extractor app UI chrome (sidebar, buttons, form)
+- Logo at packages/te-extractor/public/logo.png (copy of shared/src/assets/logo.png)
+- pdf-lib lazy-loaded from CDN for PDF splitter — do not remove or replace
+- Source migrated from github.com/rjohnson5481-spec/Claude-Test (flat repo root)
 
 ---
 
