@@ -310,6 +310,40 @@ CONTEXT: BJU Press Reading 3A, 229-page TE, Lessons 1-37. Day on calendar = Less
   </main>
 
   <script type="module" src="./app.js"></script>
+  <!-- Firebase Auth + Firestore via CDN
+       %VITE_*% tokens are replaced by Vite at build time from Netlify env vars -->
+  <script type="module">
+    import { initializeApp }
+      from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js';
+    import { getAuth, onAuthStateChanged }
+      from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js';
+    import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, orderBy, serverTimestamp }
+      from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js';
+
+    const firebaseConfig = {
+      apiKey:     '%VITE_FIREBASE_API_KEY%',
+      authDomain: '%VITE_FIREBASE_AUTH_DOMAIN%',
+      projectId:  '%VITE_FIREBASE_PROJECT_ID%',
+      appId:      '%VITE_FIREBASE_APP_ID%',
+    };
+
+    const app  = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db   = getFirestore(app);
+
+    window.__teAuth      = auth;
+    window.__teDb        = db;
+    window.__teFirestore = { collection, addDoc, getDocs, deleteDoc, doc, query, orderBy, serverTimestamp };
+
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        window.location.href = '/';
+      } else {
+        window.__teUid = user.uid;
+        document.dispatchEvent(new CustomEvent('te-auth-ready', { detail: { uid: user.uid } }));
+      }
+    });
+  </script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
