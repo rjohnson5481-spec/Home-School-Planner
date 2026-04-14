@@ -4,7 +4,7 @@ import './EditSheet.css';
 // Props: subject (string), data ({ lesson, note, done, flag } | undefined),
 //        onSave(data), onClose, onDelete (optional — if provided, shows delete button)
 export default function EditSheet({ subject, data, onSave, onClose, onDelete }) {
-  const isAllDay = subject === '__allday__';
+  const isAllDay = subject === 'allday';
   const [lesson, setLesson]           = useState(data?.lesson ?? '');
   const [note,   setNote]             = useState(data?.note   ?? '');
   const [done,   setDone]             = useState(data?.done   ?? false);

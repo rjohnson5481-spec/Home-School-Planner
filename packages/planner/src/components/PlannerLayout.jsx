@@ -91,10 +91,10 @@ export default function PlannerLayout({
     pdfImport.addLog(`Navigation: jumping to week of ${parsedData.weekId}, student=${parsedData.student}`);
   }
 
-  const allDayData = dayData['__allday__'] ?? null, hasAllDay = Boolean(allDayData);
+  const allDayData = dayData['allday'] ?? null, hasAllDay = Boolean(allDayData);
   const [showSubjects, setShowSubjects] = useState(false);
   const isSickDay = sickDayIndices?.has(day);
-  const regularSubjects = subjects.filter(s => s !== '__allday__');
+  const regularSubjects = subjects.filter(s => s !== 'allday');
   const hasSubjects = subjects.length > 0;
   const doneCount = regularSubjects.filter(s => dayData[s]?.done).length;
 
@@ -149,7 +149,7 @@ export default function PlannerLayout({
             </div>
           )}
 
-          {hasAllDay && <SubjectCard subject="__allday__" data={allDayData} onEdit={() => setEditTarget({ subject: '__allday__', day })}
+          {hasAllDay && <SubjectCard subject="allday" data={allDayData} onEdit={() => setEditTarget({ subject: 'allday', day })}
             onToggleDone={() => {}} onToggleFlag={() => {}} />}
           {hasAllDay && <button className="planner-show-subjects-btn" onClick={() => setShowSubjects(s => !s)}>
             {showSubjects ? 'Hide subjects ↑' : 'Show subjects ↓'}</button>}
@@ -233,8 +233,8 @@ export default function PlannerLayout({
           existingSubjects={subjects}
           presets={plannerSubjects}
           onAdd={subject => { addSubject(subject); setShowAddSubject(false); }}
-          onAddAllDay={(name, note) => { updateCell('__allday__', day, { lesson: name, note, done: false, flag: false }); setShowAddSubject(false); }}
-          onEditAllDay={() => { setShowAddSubject(false); setEditTarget({ subject: '__allday__', day }); }}
+          onAddAllDay={(name, note) => { updateCell('allday', day, { lesson: name, note, done: false, flag: false }); setShowAddSubject(false); }}
+          onEditAllDay={() => { setShowAddSubject(false); setEditTarget({ subject: 'allday', day }); }}
           onClose={() => setShowAddSubject(false)}
         />
       )}

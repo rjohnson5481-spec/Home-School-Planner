@@ -23,13 +23,8 @@ export function subscribeDaySubjects(uid, weekId, student, dayIndex, cb) {
 // data shape: { lesson: string, note: string, done: boolean, flag: boolean }
 // Creating a cell document IS adding that subject to that day.
 export function updateCell(uid, weekId, student, subject, dayIndex, data) {
-  const path = cellPath(uid, weekId, student, dayIndex, subject);
-  console.log('[updateCell] uid:', uid, 'weekId:', weekId, 'student:', student,
-    'dayIndex:', dayIndex, 'subject:', subject, 'data:', JSON.stringify(data), 'path:', path);
-  const ref = doc(db, path);
-  const p = setDoc(ref, data, { merge: true });
-  p.catch(err => console.error('[updateCell] Firestore FAILED:', err.code, err.message));
-  return p;
+  const ref = doc(db, cellPath(uid, weekId, student, dayIndex, subject));
+  return setDoc(ref, data, { merge: true });
 }
 
 // Reads one day cell. Returns data object or null if the document doesn't exist.
@@ -85,13 +80,13 @@ export function deleteSickDay(uid, dateString) {
 // Returns true if an all-day event exists in the given subjects map.
 // subjects: { [subject]: cellData } — the full dayData object for a day.
 export function hasAllDayEvent(subjects) {
-  return Object.prototype.hasOwnProperty.call(subjects, '__allday__');
+  return Object.prototype.hasOwnProperty.call(subjects, 'allday');
 }
 
 // Returns the all-day event cell data or null if none exists.
 // subjects: { [subject]: cellData }
 export function getAllDayEvent(subjects) {
-  return subjects['__allday__'] ?? null;
+  return subjects['allday'] ?? null;
 }
 
 // Subscribes to sick day markers for the given week dates.

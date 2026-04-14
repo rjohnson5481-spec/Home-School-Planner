@@ -2,9 +2,9 @@ import './SubjectCard.css';
 
 // Props: subject (string), data ({ lesson, note, done, flag } | undefined),
 //        onEdit, onToggleDone, onToggleFlag
-// When subject === '__allday__', renders an All Day Event banner instead of a regular card.
+// When subject === 'allday', renders an All Day Event banner instead of a regular card.
 export default function SubjectCard({ subject, data, onEdit, onToggleFlag }) {
-  if (subject === '__allday__') {
+  if (subject === 'allday') {
     return (
       <div className="subject-card--allday" onClick={onEdit} role="button"
         tabIndex={0} onKeyDown={e => e.key === 'Enter' && onEdit()}>

@@ -10,7 +10,7 @@ export default function AddSubjectSheet({ existingSubjects, presets, onAdd, onAd
   const [showAllDayForm, setShowAllDayForm] = useState(false);
   const [allDayName, setAllDayName]   = useState('');
   const [allDayNote, setAllDayNote]   = useState('');
-  const hasAllDay = existingSubjects.includes('__allday__');
+  const hasAllDay = existingSubjects.includes('allday');
 
   const available = (presets ?? SUBJECT_PRESETS).filter(s => !existingSubjects.includes(s));
 
