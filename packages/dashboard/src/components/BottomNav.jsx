@@ -1,3 +1,6 @@
+import { signOut } from '@homeschool/shared';
+import logo from '@homeschool/shared/assets/logo.png';
+import pkg from '../../package.json';
 import './BottomNav.css';
 
 const TABS = [
@@ -12,27 +15,52 @@ const TABS = [
 export default function BottomNav({ activeTab, onTabChange }) {
   return (
     <nav className="bottom-nav">
-      {TABS.map(tab => {
-        const isActive = tab.id === activeTab;
-        function handleClick() {
-          if (tab.external) {
-            window.location.href = tab.external;
-          } else {
-            onTabChange(tab.id);
+
+      {/* Desktop-only brand section */}
+      <div className="bn-brand">
+        <img src={logo} alt="ILA" className="bn-brand-logo" />
+        <div className="bn-brand-text">
+          <div className="bn-brand-name">
+            IRON & <span className="bn-brand-accent">LIGHT</span>
+          </div>
+          <div className="bn-brand-academy">JOHNSON ACADEMY</div>
+          <div className="bn-brand-tagline">Faith · Knowledge · Strength</div>
+        </div>
+      </div>
+
+      {/* Tab buttons — horizontal on mobile, vertical on desktop */}
+      <div className="bn-tabs">
+        {TABS.map(tab => {
+          const isActive = tab.id === activeTab;
+          function handleClick() {
+            if (tab.external) {
+              window.location.href = tab.external;
+            } else {
+              onTabChange(tab.id);
+            }
           }
-        }
-        return (
-          <button
-            key={tab.id}
-            className={`bn-tab${isActive ? ' bn-tab--active' : ''}`}
-            onClick={handleClick}
-            aria-label={tab.label}
-          >
-            <span className="bn-icon">{tab.icon}</span>
-            <span className="bn-label">{tab.label}</span>
-          </button>
-        );
-      })}
+          return (
+            <button
+              key={tab.id}
+              className={`bn-tab${isActive ? ' bn-tab--active' : ''}`}
+              onClick={handleClick}
+              aria-label={tab.label}
+            >
+              <span className="bn-icon">{tab.icon}</span>
+              <span className="bn-label">{tab.label}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Desktop-only footer with sign-out + version */}
+      <div className="bn-footer">
+        <button className="bn-signout" onClick={() => signOut()}>
+          🚪 Sign out
+        </button>
+        <div className="bn-version">v{pkg.version}</div>
+      </div>
+
     </nav>
   );
 }

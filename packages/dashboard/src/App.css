@@ -30,3 +30,51 @@ body {
   padding-bottom: calc(56px + env(safe-area-inset-bottom));
   overflow-y: auto;
 }
+
+/* ── Desktop: sidebar replaces bottom nav ── */
+@media (min-width: 768px) {
+  .shell-content {
+    margin-left: 200px;
+    padding-bottom: 0;
+  }
+
+  /* Override planner's desktop DayStrip sidebar — it conflicts with the shell sidebar.
+     Revert DayStrip to its mobile sticky/horizontal layout when inside the shell. */
+  .shell-content .day-strip {
+    position: sticky;
+    left: auto;
+    top: 132px;
+    bottom: auto;
+    width: auto;
+    height: auto;
+    flex-direction: row;
+    align-items: stretch;
+    background: var(--bg-card);
+    border-radius: 12px;
+    margin: 0 14px 14px;
+    padding: 5px;
+    gap: 3px;
+    border-right: none;
+    overflow-y: visible;
+    box-shadow: 0 1px 4px rgba(34, 37, 46, 0.08);
+  }
+
+  .shell-content .day-strip-students { display: none; }
+  .shell-content .day-strip-full-name { display: none; }
+
+  /* Planner body: revert desktop margin-left (shell sidebar handles the offset) */
+  .shell-content .planner-body {
+    margin-left: auto;
+    margin-right: auto;
+    max-width: none;
+  }
+
+  /* Action bar: starts at shell sidebar edge, sits at bottom (no bottom nav on desktop) */
+  .shell-content .planner-action-bar {
+    left: 200px;
+    right: 0;
+    max-width: none;
+    margin: 0;
+    bottom: 0;
+  }
+}
