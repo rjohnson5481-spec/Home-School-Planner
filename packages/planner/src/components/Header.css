@@ -180,3 +180,34 @@
 }
 
 /* Week nav now has its own row — school name visible on all screen widths */
+
+/* ── Desktop (≥768px) — single-row header ── */
+/* Mobile layout is COMPLETELY UNCHANGED — all rules below are additive */
+@media (min-width: 768px) {
+  /* Lift week nav into row 1: position absolute over header-top */
+  /* .header is position:fixed, so absolute children position relative to it */
+  .header-week {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 48px;
+    padding: 0;
+    border-top: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none; /* pass clicks through to brand/action buttons */
+  }
+
+  /* Re-enable pointer events on interactive week-nav children */
+  .header-week .header-nav-btn,
+  .header-week .header-week-label {
+    pointer-events: auto;
+  }
+
+  /* Student selector hidden — promoted to desktop sidebar (Step 2+3) */
+  .header-students {
+    display: none;
+  }
+}
