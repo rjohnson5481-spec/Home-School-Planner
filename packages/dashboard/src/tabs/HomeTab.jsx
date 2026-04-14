@@ -1,18 +1,40 @@
-// Home tab — shows the tool card grid.
-// The school header is intentionally omitted; each tool has its own header.
-// Morning Dashboard summary will replace this content once tools are migrated.
+// Home tab — tool cards wired to shell tab switching.
+// Planner + Rewards switch tabs in-shell; TE Extractor navigates externally.
 import ToolCard from '../components/ToolCard';
-import { TOOLS } from '../constants/tools';
 import './HomeTab.css';
 
-export default function HomeTab() {
+export default function HomeTab({ onTabChange }) {
   return (
     <div className="home-tab">
       <p className="home-section-label">Tools</p>
       <div className="home-tool-grid">
-        {TOOLS.map(tool => (
-          <ToolCard key={tool.id} {...tool} />
-        ))}
+        <ToolCard
+          name="Weekly Planner"
+          description="Plan and track weekly lessons for Orion and Malachi."
+          icon="PL"
+          available
+          onClick={() => onTabChange('planner')}
+        />
+        <ToolCard
+          name="Reward Tracker"
+          description="Earn and redeem points for good work and character."
+          icon="RT"
+          available
+          onClick={() => onTabChange('rewards')}
+        />
+        <ToolCard
+          name="TE Extractor"
+          description="Extract questions and vocabulary from BJU Press Teacher Edition PDFs."
+          icon="TE"
+          href="/te-extractor/"
+          available
+        />
+        <ToolCard
+          name="Academic Records"
+          description="Transcripts, grades, and attendance — coming soon."
+          icon="AR"
+          available={false}
+        />
       </div>
     </div>
   );

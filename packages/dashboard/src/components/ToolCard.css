@@ -3,6 +3,16 @@
   display: block;
 }
 
+button.tool-card-link {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  width: 100%;
+  text-align: left;
+  font-family: inherit;
+}
+
 .tool-card {
   background: var(--bg-card);
   border: 1px solid var(--border);

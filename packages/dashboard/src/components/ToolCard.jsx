@@ -15,6 +15,13 @@ export default function ToolCard({ name, description, icon, href, available }) {
   );
 
   if (available) {
+    if (onClick) {
+      return (
+        <button className="tool-card-link" onClick={onClick}>
+          {card}
+        </button>
+      );
+    }
     return (
       <a href={href} className="tool-card-link">
         {card}
