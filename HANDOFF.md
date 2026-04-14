@@ -1,8 +1,8 @@
-# HANDOFF — Session ending 2026-04-14 (fourteenth session)
+# HANDOFF — Session ending 2026-04-14 (session 13 close, v0.21.2)
 
-## What was completed this session
+## What was completed this session — v0.21.2
 
-### Fix — Replace SVG icons with emojis in Header.jsx (commit d615247) ✅ COMPLETE
+### Fix 1 ✅ — SVG icons replaced with emojis in Header.jsx
 Replaced the three inline SVG elements in `packages/planner/src/components/Header.jsx`
 with emojis to match the existing calendar button style:
 - Upload/Import SVG → ⬆️
@@ -10,23 +10,27 @@ with emojis to match the existing calendar button style:
 - Sign out SVG → 🚪
 - Calendar 📅 — already emoji, left untouched
 
-All button elements, onClick handlers, className, aria-label, and title attributes
-are exactly unchanged. No other files touched. One file changed only.
+### All v0.21.2 production verifications cleared ✅
+- All Day Event saves and reappears after page reload
+- Week 2026-04-06 correctly shows data migrated from 2026-04-07
+- PDF import weekId in the debug log is a Monday, not a Tuesday
+- Import merge toggle OFF preserves existing done/note data
 
 ---
 
 ## What to do first next session
 
-### 1. Verify in production
-After push and Netlify deploy:
-1. Open /planner in browser — confirm all 4 header buttons show as emojis (📅 ⬆️ ⚙️ 🚪)
-2. Confirm tapping each button still works correctly
-3. Add an All Day Event — confirm it saves and reappears after page reload (v0.21.2 fix)
-4. Confirm the week for 2026-04-06 now shows the data that was previously in 2026-04-07
+### 1. Fix — Import sheet preview shows wrong week label (cosmetic)
+After a PDF import, the "Week of Apr 14" label in the upload sheet preview
+shows the pre-normalized weekId (Tuesday Apr 14) instead of the corrected
+Monday (Apr 13). The Firestore writes go to the correct week — this is
+display-only. Fix is in `UploadSheet.jsx` or `PlannerLayout.jsx` — find
+where the weekId is passed into the preview label and run it through
+`mondayWeekId()` before display.
 
-### 2. Import merge smoke-test (still pending from v0.21.0)
-Import a second PDF with "Replace existing schedule" toggle OFF —
-confirm existing done/note data is preserved.
+### 2. Desktop sidebar — full browser test still deferred
+Desktop layout tested on phone only. A full browser test at ≥768px
+to verify the sidebar, card grid, and action bar alignment is still pending.
 
 ### 3. Verify Firestore security rules (session 9 item — still unchecked)
 Confirm rules allow reads/writes to `/users/{uid}/teExtractor/extractions/items/{docId}`.
