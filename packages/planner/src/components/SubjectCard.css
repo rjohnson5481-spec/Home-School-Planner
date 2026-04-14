@@ -145,32 +145,6 @@
   color: var(--text-muted);
 }
 
-/* ── Footer: done toggle ── */
-.subject-card-footer {
-  margin-top: 10px;
-}
-
-.subject-card-done-btn {
-  background: transparent;
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  color: var(--text-muted);
-  font-size: 12px;
-  font-weight: 500;
-  padding: 4px 14px;
-  cursor: pointer;
-  font-family: inherit;
-  transition: background 0.15s, border-color 0.15s, color 0.15s;
-}
-
-.subject-card-done-btn--active {
-  background: var(--gold-pale);
-  border-color: var(--gold);
-  color: #8a6a20;
-  font-weight: 600;
-}
-
-.subject-card-done-btn:hover:not(.subject-card-done-btn--active) {
-  border-color: var(--gold);
-  color: var(--gold);
-}
+/* ── Footer: hint text (shown only when not done) ── */
+.subject-card-footer { margin-top: 8px; }
+.subject-card-hint { font-size: 11px; font-weight: 300; color: var(--text-muted); }

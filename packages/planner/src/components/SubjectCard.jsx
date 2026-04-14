@@ -3,7 +3,7 @@ import './SubjectCard.css';
 // Props: subject (string), data ({ lesson, note, done, flag } | undefined),
 //        onEdit, onToggleDone, onToggleFlag
 // When subject === '__allday__', renders an All Day Event banner instead of a regular card.
-export default function SubjectCard({ subject, data, onEdit, onToggleDone, onToggleFlag }) {
+export default function SubjectCard({ subject, data, onEdit, onToggleFlag }) {
   if (subject === '__allday__') {
     return (
       <div className="subject-card--allday" onClick={onEdit} role="button"
@@ -48,15 +48,11 @@ export default function SubjectCard({ subject, data, onEdit, onToggleDone, onTog
         {data?.lesson || <span className="subject-card-empty">Tap to add lesson details</span>}
       </p>
 
-      <div className="subject-card-footer">
-        <button
-          className={`subject-card-done-btn${done ? ' subject-card-done-btn--active' : ''}`}
-          onClick={e => { e.stopPropagation(); onToggleDone(); }}
-          aria-label={done ? 'Mark incomplete' : 'Mark complete'}
-        >
-          {done ? '✓ Done' : 'Mark done'}
-        </button>
-      </div>
+      {!done && (
+        <div className="subject-card-footer">
+          <span className="subject-card-hint">Tap to edit</span>
+        </div>
+      )}
     </div>
   );
 }
