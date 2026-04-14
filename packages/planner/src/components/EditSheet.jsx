@@ -4,6 +4,7 @@ import './EditSheet.css';
 // Props: subject (string), data ({ lesson, note, done, flag } | undefined),
 //        onSave(data), onClose, onDelete (optional — if provided, shows delete button)
 export default function EditSheet({ subject, data, onSave, onClose, onDelete }) {
+  const isAllDay = subject === '__allday__';
   const [lesson, setLesson]           = useState(data?.lesson ?? '');
   const [note,   setNote]             = useState(data?.note   ?? '');
   const [done,   setDone]             = useState(data?.done   ?? false);
@@ -19,7 +20,7 @@ export default function EditSheet({ subject, data, onSave, onClose, onDelete }) 
   }, [deleteConfirm]);
 
   function handleSave() {
-    onSave({ lesson: lesson.trim(), note: note.trim(), done, flag });
+    onSave({ lesson: lesson.trim(), note: note.trim(), done: isAllDay ? false : done, flag: isAllDay ? false : flag });
   }
 
   function handleDeleteClick(e) {
@@ -39,17 +40,17 @@ export default function EditSheet({ subject, data, onSave, onClose, onDelete }) 
         <div className="edit-sheet-handle" aria-hidden="true" />
 
         <header className="edit-sheet-header">
-          <h2 className="edit-sheet-title">{subject}</h2>
+          <h2 className="edit-sheet-title">{isAllDay ? 'All Day Event' : subject}</h2>
           <button className="edit-sheet-close" onClick={onClose} aria-label="Close">✕</button>
         </header>
 
         <div className="edit-sheet-body">
-          <label className="edit-sheet-label">Lesson</label>
+          <label className="edit-sheet-label">{isAllDay ? 'Event name' : 'Lesson'}</label>
           <textarea
             className="edit-sheet-textarea"
             value={lesson}
             onChange={e => setLesson(e.target.value)}
-            placeholder="Enter lesson description…"
+            placeholder={isAllDay ? 'Event name…' : 'Enter lesson description…'}
             rows={3}
             autoFocus
           />
@@ -63,27 +64,29 @@ export default function EditSheet({ subject, data, onSave, onClose, onDelete }) 
             rows={2}
           />
 
-          <div className="edit-sheet-toggles">
-            <button
-              className={`edit-sheet-toggle${done ? ' edit-sheet-toggle--done' : ''}`}
-              onClick={() => setDone(d => !d)}
-            >
-              {done ? '✓' : '○'} Done
-            </button>
-            <button
-              className={`edit-sheet-toggle${flag ? ' edit-sheet-toggle--flag' : ''}`}
-              onClick={() => setFlag(f => !f)}
-            >
-              ⚑ {flag ? 'Flagged' : 'Flag'}
-            </button>
-          </div>
+          {!isAllDay && (
+            <div className="edit-sheet-toggles">
+              <button
+                className={`edit-sheet-toggle${done ? ' edit-sheet-toggle--done' : ''}`}
+                onClick={() => setDone(d => !d)}
+              >
+                {done ? '✓' : '○'} Done
+              </button>
+              <button
+                className={`edit-sheet-toggle${flag ? ' edit-sheet-toggle--flag' : ''}`}
+                onClick={() => setFlag(f => !f)}
+              >
+                ⚑ {flag ? 'Flagged' : 'Flag'}
+              </button>
+            </div>
+          )}
 
           {onDelete && (
             <button
               className={`edit-sheet-delete${deleteConfirm ? ' edit-sheet-delete--confirm' : ''}`}
               onClick={handleDeleteClick}
             >
-              {deleteConfirm ? 'Tap again to confirm' : 'Remove from this day'}
+              {deleteConfirm ? 'Tap again to confirm' : isAllDay ? 'Remove All Day Event' : 'Remove from this day'}
             </button>
           )}
         </div>
