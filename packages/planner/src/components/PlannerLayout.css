@@ -100,24 +100,9 @@
   color: var(--gold);
 }
 
-/* ── Show/Hide subjects toggle (visible when All Day Event exists) ── */
-.planner-show-subjects-btn {
-  width: 100%;
-  background: transparent;
-  border: none;
-  color: var(--gold);
-  font-size: 13px;
-  font-weight: 500;
-  font-family: inherit;
-  cursor: pointer;
-  padding: 8px 0 4px;
-  text-align: center;
-  transition: color 0.15s;
-}
-
+/* ── Show/Hide subjects toggle + Dashed add subject button ── */
+.planner-show-subjects-btn { width: 100%; background: transparent; border: none; color: var(--gold); font-size: 13px; font-weight: 500; font-family: inherit; cursor: pointer; padding: 8px 0 4px; text-align: center; transition: color 0.15s; }
 .planner-show-subjects-btn:hover { color: var(--gold-light); }
-
-/* ── Dashed add subject button ── */
 .planner-add-btn {
   width: 100%;
   background: transparent;
@@ -306,3 +291,10 @@
 }
 
 .undo-sick-confirm:hover { opacity: 0.85; }
+
+@media (min-width: 768px) {
+  .planner-body { margin-top: 48px; margin-left: 200px; max-width: none; }
+  .planner-main { padding: 24px 28px 90px; }
+  .planner-subjects { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); }
+  .planner-action-bar { left: 200px; max-width: none; margin: 0; }
+}

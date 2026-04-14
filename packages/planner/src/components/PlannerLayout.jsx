@@ -117,6 +117,9 @@ export default function PlannerLayout({
           selected={day}
           onSelect={setDay}
           sickDayIndices={sickDayIndices}
+          students={students}
+          student={student}
+          onStudentChange={setStudent}
         />
 
         {isSickDay && (
@@ -147,13 +150,10 @@ export default function PlannerLayout({
             </div>
           )}
 
-          {hasAllDay && <SubjectCard subject="__allday__" data={allDayData}
-            onEdit={() => setEditTarget({ subject: '__allday__', day })}
+          {hasAllDay && <SubjectCard subject="__allday__" data={allDayData} onEdit={() => setEditTarget({ subject: '__allday__', day })}
             onToggleDone={() => {}} onToggleFlag={() => {}} />}
-          {hasAllDay && <button className="planner-show-subjects-btn"
-            onClick={() => setShowSubjects(s => !s)}>
-            {showSubjects ? 'Hide subjects ↑' : 'Show subjects ↓'}
-          </button>}
+          {hasAllDay && <button className="planner-show-subjects-btn" onClick={() => setShowSubjects(s => !s)}>
+            {showSubjects ? 'Hide subjects ↑' : 'Show subjects ↓'}</button>}
           {(!hasAllDay || showSubjects) && (
             <div className="planner-subjects">
               {subjects.filter(s => s !== '__allday__').map(subject => (
