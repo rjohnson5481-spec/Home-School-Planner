@@ -30,7 +30,7 @@ export function useSubjects(uid, weekId, student, day) {
       setDayData(data);
       setLoading(false);
     });
-    return () => { unsub(); setDayData({}); setLoading(true); };
+    return () => { unsub(); setLoading(true); };
   }, [uid, weekId, student, day]);
 
   // Subscribe to sick day markers for the current week (all students).
