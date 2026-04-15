@@ -285,7 +285,10 @@
 .undo-sick-confirm:hover { opacity: 0.85; }
 
 @media (min-width: 768px) {
-  .planner-body { margin-top: 48px; margin-left: 200px; max-width: none; }
+  /* margin-top: 0 — planner header is hidden inside the shell, so no
+     offset is needed. The previous 48px came from the retired
+     single-row desktop header. */
+  .planner-body { margin-top: 0; margin-left: 200px; max-width: none; }
   .planner-main { padding: 24px 28px 156px; } /* 100px action bar + 56px bottom nav */
   .planner-subjects { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 14px; }
   .planner-action-bar { left: 200px; max-width: none; margin: 0; }
@@ -294,15 +297,15 @@
   .planner-day-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
   .planner-day-title { font-size: 22px; font-weight: 600; color: var(--text-primary); margin: 0 0 4px; line-height: 1.1; }
   .planner-day-subtitle { font-size: 13px; color: var(--text-muted); font-weight: 400; margin: 0; }
-  .planner-day-add-btn { background: var(--ink); color: var(--gold-light); border: none; border-radius: 8px; padding: 8px 16px; font-size: 13px; font-weight: 600; font-family: inherit; cursor: pointer; white-space: nowrap; transition: background 0.15s; }
-  .planner-day-add-btn:hover { background: var(--ink-light); }
+  /* Redundant with the bottom "+ Add Subject" dashed button — hide on desktop. */
+  .planner-day-add-btn { display: none; }
 
   .planner-week-nav-desktop {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 16px;
-    padding: 14px 28px 0;
+    padding: 12px 28px 8px;
     font-size: 15px;
     font-weight: 600;
     color: var(--text-primary);

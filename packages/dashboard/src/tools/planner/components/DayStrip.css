@@ -193,4 +193,49 @@
     left: auto;
     transform: none;
   }
+
+  /* ── Inside the dashboard shell, revert tabs to horizontal mobile-style.
+     The desktop sidebar mode above was for the retired standalone planner;
+     the shell now owns the left sidebar, so the planner's DayStrip sits
+     horizontally in the content column and its 5 tabs must share width. */
+  .shell-content .day-strip-tab {
+    flex: 1;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 2px;
+    padding: 6px 4px;
+    margin-bottom: 0;
+  }
+  .shell-content .day-strip-name {
+    min-width: 0;
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+  .shell-content .day-strip-date {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text-primary);
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+  .shell-content .day-strip-tab--active .day-strip-name { color: rgba(255, 255, 255, 0.5); }
+  .shell-content .day-strip-tab--active .day-strip-date { color: #fff; font-weight: 700; }
+  .shell-content .day-strip-tab--today .day-strip-date {
+    color: var(--gold);
+    font-weight: 700;
+    border-bottom: 2px solid var(--gold);
+    padding-bottom: 1px;
+  }
+  .shell-content .day-strip-tab--active.day-strip-tab--today .day-strip-date {
+    color: var(--gold-light);
+    border-bottom-color: var(--gold-light);
+  }
+  .shell-content .day-strip-tab--sick::after {
+    top: auto;
+    right: auto;
+    bottom: 3px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
 }
