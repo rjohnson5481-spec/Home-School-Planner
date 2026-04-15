@@ -1,115 +1,127 @@
-# HANDOFF — v0.22.2 (desktop CSS audit + CLAUDE.md sync)
+# HANDOFF — v0.22.3 cleanup
 
 ## What was completed this session
 
-### Task 1 — Desktop CSS audit and consolidation
-Full audit of every `@media (min-width: 768px)` block across:
-- `packages/dashboard/src/tools/planner/components/Header.css`
-- `packages/dashboard/src/tools/planner/components/PlannerLayout.css`
-- `packages/dashboard/src/tools/planner/components/DayStrip.css`
-- `packages/dashboard/src/tools/planner/components/SubjectCard.css`
-- `packages/dashboard/src/App.css`
-- `packages/dashboard/src/components/BottomNav.css`
+### Task 1 — Deleted orphaned planner / reward-tracker entry files
+Confirmed via grep that nothing in the codebase imports these files
+(only HANDOFF.md mentioned them, as pending-cleanup items). Deleted:
+- `packages/dashboard/src/tools/planner/App.jsx`
+- `packages/dashboard/src/tools/planner/main.jsx`
+- `packages/dashboard/src/tools/reward-tracker/App.jsx`
+- `packages/dashboard/src/tools/reward-tracker/main.jsx`
 
-**Conflicts / dead rules found and removed:**
+The active tab entry points are `packages/dashboard/src/tabs/PlannerTab.jsx`
+and `tabs/RewardsTab.jsx`, which own their own hook wiring. `migrateBadWeeks`
+in `tools/planner/firebase/planner.js` was only called from the retired
+planner App.jsx — it's now dead code (tree-shaken) but the function was
+left in place because it's a one-time migration that may still matter
+on devices that never ran it. Safe to remove in a future pass.
 
-1. **DayStrip.css — entire desktop `@media` block (~145 lines) deleted.**
-   It was built for the retired standalone-planner sidebar mode
-   (`position: fixed; left: 0; width: 200px; flex-direction: column`) +
-   a `.shell-content`-scoped revert block that undid all of it. All
-   dead code; the planner only lives in the shell now. Mobile's base
-   horizontal-pill layout works correctly at every width.
+Left in place (not required for deletion):
+- `tools/planner/planner.css`
+- `tools/reward-tracker/reward-tracker.css`
+These are only referenced by the deleted `main.jsx` files, so they
+no longer enter the bundle — but the CSS files themselves remain on
+disk. Candidate for a future cleanup pass.
 
-2. **App.css desktop block simplified** from 11 rule blocks to 3:
-   - Removed `.shell-content .day-strip { ... position: sticky; top: 132px; flex-direction: row; background: var(--bg-card); border-radius: 12px; margin: 0 14px 14px; padding: 5px; gap: 3px; ... }` — most of that was reverting DayStrip's sidebar mode; with that mode gone, base already matches.
-   - Removed `.shell-content .day-strip-students { display: none }` and `.shell-content .day-strip-full-name { display: none }` — only needed to counter the deleted sidebar block.
-   - Removed `.shell-content .planner-body { margin-left: auto; margin-right: auto; max-width: none }` — PlannerLayout.css now owns the planner-body desktop rule directly.
-   - Kept: `.shell-content { margin-left: 200px; padding-bottom: 0 }`, new `.shell-content .day-strip { position: static; top: auto }` (the day-title-clipping fix), and `.shell-content .planner-action-bar { left: 200px; right: 0; margin: 0; bottom: 0; max-width: none }`.
+### Task 2 — Import merge bug: added diagnostic logging
+The `calm-whistling-clock.md` plan file at `/root/.claude/plans/` does
+not exist in this environment (directory is empty). Reconstructed the
+diagnostic from the bug description and code reading.
 
-3. **PlannerLayout.css desktop block trimmed of dead rules:**
-   - Removed `.planner-body { ... margin-left: 200px }` — App.css's `.shell-content .planner-body` (now deleted) was overriding this to `auto`; since both are gone, mobile's `margin-left: auto` correctly takes effect.
-   - Removed `.planner-action-bar { left: 200px; max-width: none; margin: 0 }` — App.css's `.shell-content .planner-action-bar` is a strict superset.
-   - Kept planner-only concerns: `.planner-body { margin-top: 0; max-width: none }`, `.planner-main` padding, `.planner-subjects` grid, `.planner-day-header*`, `.planner-day-add-btn { display: none }`, `.planner-week-nav-desktop*`, `.planner-action-btn*`.
-   - Also reduced `.planner-main { padding-bottom }` from 156px (old mobile: action-bar + bottom-nav) to 100px (desktop has no bottom nav; only action-bar to clear).
+**Code review first.** The skip-if-exists logic looks correct on paper:
+- `UploadSheet.handleApply(result, wipe)` passes the toggle state.
+- `PlannerLayout.handleApplySchedule(parsedData, wipe)` passes `wipe`
+  as the `overwrite` flag to `importCell`.
+- `useSubjects.importCell(..., overwrite)` — when `overwrite === false`,
+  reads the existing cell with `dbReadCell`; if it exists, returns
+  early (no write). Otherwise writes a fresh cell.
 
-**Where desktop rules live now (non-overlapping):**
-- `App.css` → only shell-aware concerns (`.shell-content` offset, shell overrides for `.day-strip` and `.planner-action-bar`).
-- `PlannerLayout.css` → only planner-internal desktop (body sizing, card grid, day header, week nav, action buttons).
-- `Header.css` → single rule `.header { display: none }`.
-- `DayStrip.css` → no desktop block.
-- `SubjectCard.css` → no desktop block.
-- `BottomNav.css` → the mobile-bar ↔ desktop-sidebar transition.
+No obvious bug in that flow. So the fix this pass is instrumentation:
+wire the PDF import log all the way through so a reproduction in the
+browser will show exactly what happened per cell.
 
-### Fix — Day title clipping
-Root cause: `.shell-content .day-strip { top: 132px }` in App.css made
-the day strip sticky at 132px from the viewport top. That 132px was
-tuned for the mobile 132px fixed header. With the planner header hidden
-on desktop, nothing is above the day strip and the 132px sticky offset
-leaves 132px of empty space on the page; when the user scrolls, the
-`.planner-main` content (including the day title) scrolled up into/behind
-the sticky z-index-50 day strip — "partially hidden behind the day strip."
+**Changes:**
+- `hooks/useSubjects.js` — `importCell` now takes an optional 7th
+  `onLog` param. When provided:
+  - Overwrite=false path: logs `SKIP student/weekId/day/subject existing { lesson, note, done, flag }` when a cell is preserved, or `WRITE-NEW ...` when creating a new cell.
+  - Overwrite=true path: logs `WRITE-OVER ...` for each cell.
+- `components/PlannerLayout.jsx` — `handleApplySchedule` now passes
+  `pdfImport.addLog` as the 7th arg on every `importCell` call.
+  The opening log line now always prints `wipe: true|false` (was
+  previously conditional on wipe being true — so merge-mode imports
+  didn't clearly state the wipe value in the log).
+  Dropped the misleading per-cell "Writing:" pre-log since the real
+  SKIP/WRITE-NEW/WRITE-OVER lines now convey actual decisions.
+- `components/UploadSheet.jsx` — `handleApply` logs
+  `Apply clicked — wipe toggle state: <bool>` before calling onApply.
+  This catches any mismatch between the UI toggle state and what
+  `handleApplySchedule` ends up seeing (e.g., stale closure).
 
-Fix: `.shell-content .day-strip { position: static; top: auto }` on desktop.
-The shell already scrolls as a whole; the day strip just scrolls with it.
-Mobile still uses sticky `top: 132px` because of the mobile fixed header.
+**How to reproduce and read the log:**
+1. Import a PDF with the "Replace existing schedule" toggle OFF.
+2. Wait for parse → Apply to Week → success banner.
+3. Manually mark one or two lessons `done` and add notes via EditSheet.
+4. Re-import the same PDF with the toggle OFF again.
+5. Open the UploadSheet's "View Log ({N})" button — the log now
+   contains a line-per-cell explanation. Expected:
+   - `Apply clicked — wipe toggle state: false`
+   - `Applying — … wipe: false`
+   - For each cell that already exists: `SKIP …/Math existing { lesson:"…", note:"Study more", done:true, flag:false }`
+   - For any new cells only: `WRITE-NEW …`
+6. If the bug still reproduces (done/note actually got wiped), the log
+   will reveal whether it was a phantom `WRITE-OVER` (wipe snuck in as
+   true), a spurious `WRITE-NEW` (dbReadCell didn't find the cell),
+   or data mutation happened from a different code path entirely.
 
-### Task 2 — CLAUDE.md sync to v0.22.1 architecture
-Surgical updates:
-- **Repo structure**: dropped `packages/planner` and `packages/reward-tracker` (retired session 14); noted that they now live at `packages/dashboard/src/tools/{planner,reward-tracker}/`; documented the root workspaces list.
-- **Deployment**: "Tools at /planner, /reward-tracker, etc." → shell at /, TE Extractor at /te-extractor/.
-- **File structure — planner tool**: path prefix changed from `packages/planner/src/` to `packages/dashboard/src/tools/planner/`; noted the orphaned legacy `main.jsx`/`App.jsx`.
-- **Desktop layout**: fully rewritten — `display: none` header, 200px shell sidebar, desktop week nav in content, day strip non-sticky, grid layout, action bar alignment.
-- **Added "Where desktop rules live"** sub-section so the next session doesn't re-create cross-file conflicts.
-- **Tools status**: all four tools now ✅; dashboard marked complete as app shell.
-- **Dashboard app shell architecture**: updated to describe lifted `plannerStudent` state + `useSettings` at the shell level + both students/activeStudent passed to BottomNav; added desktop sidebar spec.
-- **File structure — dashboard shell**: added `hooks/useHomeSummary.js`, `tools/planner/`, `tools/reward-tracker/`; updated tab descriptions (no more "migration-in-progress placeholder").
-- **Migration plan (next session)**: renamed to "Migration — completed" with past-tense items.
-- **Phase tracking — planner**: added session 16 + v0.22.0/0.22.1/0.22.2 entries.
-- **Dark mode token rule**: added as its own block under Key decisions — `var(--text-primary)` not `var(--ink)` on cards; `var(--text-secondary)` not `var(--text-muted)` on headings; hardcoded `#22252e` is allowed on chrome.
-- **Layout (Design System)**: stale 60/80/68px chrome description replaced with current 132px-mobile / 200px-desktop-sidebar layout.
+### Task 3 — BottomNav.css duplicate font-family
+- `.bn-signout` had `font-family: inherit` followed by
+  `font-family: 'Apple Color Emoji', 'Segoe UI Emoji', sans-serif`.
+  The second declaration won, so the button's "Sign out" text was
+  falling back to system sans-serif instead of Lexend.
+- The button renders `🚪 Sign out` (emoji + text together). Unlike
+  the icon-only `.bn-icon` span which legitimately uses the emoji
+  font stack, a mixed emoji+text element should inherit Lexend —
+  browsers render emoji codepoints via system fallback automatically.
+- Fix: removed the second `font-family` declaration, kept `inherit`.
 
-### Version bump to v0.22.2
-- `packages/dashboard/package.json`: 0.22.1 → 0.22.2
-- `packages/shared/package.json`:    0.22.1 → 0.22.2
-- `packages/te-extractor/package.json`: 0.22.1 → 0.22.2
+### Version bump to v0.22.3
+- `packages/dashboard/package.json`: 0.22.2 → 0.22.3
+- `packages/shared/package.json`:    0.22.2 → 0.22.3
+- `packages/te-extractor/package.json`: 0.22.2 → 0.22.3
 
-Build verified clean at each step (`@homeschool/dashboard@0.22.2`,
-`@homeschool/te-extractor@0.22.2`). Mobile layout completely untouched.
+Build clean at each step.
 
 ---
 
 ## What is currently incomplete / pending
 
-1. **Browser smoke test** — key things to verify visually:
-   - **Day title no longer clipped** when scrolling on desktop. Title stays in flow with the rest of `.planner-main`; day strip scrolls away with the page rather than sticking.
-   - Mobile: day strip still sticks at `top: 132px` below the 132px mobile header.
-   - Desktop week nav still sits flush above the day strip (one cohesive unit).
-   - Card grid still fills content width on desktop with auto-fill 340px min.
-   - Action bar still aligned to the 200px shell sidebar edge and viewport bottom.
-   - Student selector in sidebar still only appears on Planner tab.
+1. **Import merge bug confirmation** — still unresolved. Rob needs to
+   reproduce with v0.22.3 deployed, then share the log output from
+   `View Log` in the UploadSheet. The log will now contain SKIP /
+   WRITE-NEW / WRITE-OVER lines that make the root cause obvious.
 
-2. **Orphaned file** (inherited) — `packages/dashboard/src/tools/planner/App.jsx`
-   + possibly `main.jsx` inside tools/planner and tools/reward-tracker are
-   orphaned. Dead code, tree-shaken out. Safe to delete.
+2. **Browser smoke test** — verify v0.22.2 desktop CSS cleanup still
+   looks right: day title no longer clipped on scroll, week nav flush
+   above day strip, card grid fills desktop width, action bar aligned
+   to sidebar edge.
 
-3. **Import merge bug** (inherited from session 15) —
-   `calm-whistling-clock.md` plan at `/root/.claude/plans/`.
+3. **Dead-ish code candidates** (not critical, future cleanup):
+   - `tools/planner/planner.css` and `tools/reward-tracker/reward-tracker.css` — no longer imported by any live file since their `main.jsx` entries were deleted.
+   - `migrateBadWeeks` in `tools/planner/firebase/planner.js` — no
+     remaining callers after the orphaned App.jsx was deleted.
 
-4. **BottomNav.css minor bug** (inherited) — `.bn-signout` has
-   `font-family` declared twice. Harmless.
-
-5. **Chunk size** — dashboard JS bundle ~640 KB. Known/expected.
+4. **Chunk size** — dashboard JS bundle ~640 KB. Known/expected.
 
 ---
 
 ## What the next session should start with
 
 1. Read CLAUDE.md + HANDOFF.md (standard).
-2. Browser smoke test v0.22.2 — verify day title no longer clips when
-   scrolling, and that nothing else regressed from the CSS cleanup.
-3. Delete orphaned `tools/planner/App.jsx` + `main.jsx` (and the reward
-   tracker counterparts if present) once confirmed unused.
-4. If import merge bug still repros: follow `calm-whistling-clock.md`.
+2. Ask Rob for the `View Log` output after reproducing the import
+   merge bug on the deployed v0.22.3 site.
+3. Diagnose from the log; apply the real fix in a follow-up commit.
+4. If time: remove the remaining dead-ish files in item 3 above.
 
 ---
 
@@ -117,13 +129,20 @@ Build verified clean at each step (`@homeschool/dashboard@0.22.2`,
 
 ```
 packages/dashboard/
-├── package.json                                     # v0.22.2
+├── package.json                                      # v0.22.3
 ├── src/
-│   ├── App.css                                      # desktop block simplified (3 blocks)
-│   └── tools/planner/components/
-│       ├── DayStrip.css                             # desktop @media block removed
-│       └── PlannerLayout.css                        # desktop block trimmed of dead rules
-packages/shared/package.json                          # v0.22.2
-packages/te-extractor/package.json                    # v0.22.2
-CLAUDE.md                                             # synced to v0.22.1 architecture
+│   ├── components/
+│   │   └── BottomNav.css                             # duplicate font-family removed
+│   └── tools/planner/
+│       ├── hooks/useSubjects.js                      # importCell takes optional onLog
+│       └── components/
+│           ├── PlannerLayout.jsx                     # threads pdfImport.addLog into importCell; clearer wipe log
+│           └── UploadSheet.jsx                       # logs wipe state at click time
+Deleted:
+├── src/tools/planner/App.jsx
+├── src/tools/planner/main.jsx
+├── src/tools/reward-tracker/App.jsx
+└── src/tools/reward-tracker/main.jsx
+packages/shared/package.json                           # v0.22.3
+packages/te-extractor/package.json                     # v0.22.3
 ```
