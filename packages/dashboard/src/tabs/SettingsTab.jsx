@@ -222,7 +222,7 @@ export default function SettingsTab({ user, colorMode, onToggleDarkMode }) {
 
       <div className="st-version">
         <div className="st-version-name">Iron &amp; Light Johnson Academy</div>
-        <div className="st-version-line">v{version} · ironandlight.netlify.app</div>
+        <div className="st-version-line">v{version} · homeschool.grasphislove.com</div>
       </div>
     </div>
   );
