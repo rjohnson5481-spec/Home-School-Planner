@@ -12,7 +12,7 @@ import './AcademicRecordsTab.css';
 export default function AcademicRecordsTab() {
   const { user } = useAuth();
   const uid = user?.uid;
-  const { addCourse, updateCourse, removeCourse } = useCourses(uid);
+  const { courses, loading, error, addCourse, updateCourse, removeCourse } = useCourses(uid);
 
   const [catalogSheetOpen, setCatalogSheetOpen] = useState(false);
   const [addEditSheetOpen, setAddEditSheetOpen] = useState(false);
@@ -111,7 +111,9 @@ export default function AcademicRecordsTab() {
       <CourseCatalogSheet
         open={catalogSheetOpen}
         onClose={closeCatalog}
-        uid={uid}
+        courses={courses}
+        loading={loading}
+        error={error}
         onEditCourse={handleEditCourse}
         onAddCourse={handleAddCourse}
       />

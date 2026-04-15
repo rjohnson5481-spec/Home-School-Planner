@@ -1,4 +1,3 @@
-import { useCourses } from '../hooks/useCourses.js';
 import { GRADING_TYPE_LETTER } from '../constants/academics.js';
 import './CourseCatalogSheet.css';
 
@@ -7,10 +6,15 @@ import './CourseCatalogSheet.css';
 // to the parent (AcademicRecordsTab) which opens the AddEditCourseSheet
 // stacked on top of this one.
 //
+// Course state is owned by the parent — pass courses/loading/error in as
+// props so a save in the parent reflects here without close-then-reopen.
+//
 // Props:
 //   open           — boolean, controls visibility (parent unmounts on false)
 //   onClose        — () => void, dismisses the sheet
-//   uid            — Firebase user id (passed to useCourses)
+//   courses        — Array<{ id, name, curriculum, gradingType }>, sorted
+//   loading        — boolean, true while the catalog is (re)loading
+//   error          — string | null, shown above the list when present
 //   onEditCourse   — (course) => void, fires when a row is tapped
 //   onAddCourse    — () => void, fires when "+ Add Course" is tapped
 
@@ -20,9 +24,9 @@ const DOT_COLORS = [
   '#e65100', '#00838f', '#558b2f', '#ad1457',
 ];
 
-export default function CourseCatalogSheet({ open, onClose, uid, onEditCourse, onAddCourse }) {
-  const { courses, loading } = useCourses(uid);
-
+export default function CourseCatalogSheet({
+  open, onClose, courses, loading, error, onEditCourse, onAddCourse,
+}) {
   if (!open) return null;
 
   return (
@@ -38,6 +42,10 @@ export default function CourseCatalogSheet({ open, onClose, uid, onEditCourse, o
 
         <div className="cc-sheet-body">
           <p className="cc-section-label"><span>Courses</span></p>
+
+          {error && (
+            <p className="cc-loading" role="alert">⚠ {error}</p>
+          )}
 
           {loading && (
             <p className="cc-loading">Loading courses…</p>
