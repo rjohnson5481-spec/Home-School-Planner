@@ -1,114 +1,161 @@
-# HANDOFF — Session 16 (batch add per-day lesson details)
+# HANDOFF — v0.22.0 (desktop planner fixes)
 
 ## What was completed this session
 
-### Feature — Per-day lesson details in batch add sheet
-Extends the batch add sheet (shipped earlier in session 16) with an optional
-inline "Lesson details" section. Users can now pre-fill lesson text per day
-from inside the same sheet instead of creating blank cells and editing each
-one afterward.
+### Fix 1 — Hide planner header on desktop
+- `packages/dashboard/src/tools/planner/components/Header.css`:
+  - Replaced the previous desktop media block (which lifted the week nav
+    into row 1, hid the student row, etc.) with a single rule:
+    `@media (min-width: 768px) { .header { display: none; } }`
+  - Mobile layout (the 132px 3-row fixed header) is completely untouched.
+  - Shell sidebar now provides branding, primary nav, and sign-out at
+    desktop widths — the planner's own header is redundant there.
 
-- `AddSubjectSheet.jsx`:
-  - New state `lessonDetails` — `{ [dayIndex]: lessonText }` keyed by dayIndex
-  - New `setDetail(i, text)` helper for per-input onChange
-  - `toggleDay(i)` now discards `lessonDetails[i]` when a day is deselected
-    (uses `wasSelected = selectedDays.has(i)` captured before the setState
-    call to avoid the stale-closure issue on the second setState)
-  - `clearDays()` also resets `lessonDetails` to `{}`
-  - `selectAllDays()` unchanged (does NOT clear details — any already-typed
-    text for the newly-added days stays if the user had typed in them earlier)
-  - `handleConfirm()` now passes `lessonDetails` as the third arg to
-    `onAdd(subject, cells, lessonDetails)`
-  - New JSX block between the Days selector and Students selector:
-    - Renders only when `trimmed.length > 0 && selectedDays.size > 0`
-    - Iterates `Array.from(selectedDays)` (Set preserves insertion order, so
-      newly toggled days append to the end without reordering filled fields)
-    - Label per row: `MON · Apr 13` — `DAY_SHORT[i].toUpperCase()` + ` · ` +
-      `weekDates[i].toLocaleDateString('en-US', { month: 'short', day: 'numeric' })`
-    - Input: single-line, `value={lessonDetails[i] ?? ''}`, placeholder
-      "Add lesson details..."
-  - All Day Event branch untouched
+### Fix 2 — Desktop week nav in content area
+- `packages/dashboard/src/tools/planner/components/PlannerLayout.jsx`:
+  - Imports now include `formatWeekLabel` from `../constants/days.js`
+  - New `<div className="planner-week-nav-desktop">` rendered inside
+    `.planner-body`, directly above `<DayStrip>`. Contains `‹` button
+    (onClick=prevWeek), the `formatWeekLabel(weekDates)` label, and `›`
+    button (onClick=nextWeek).
+- `PlannerLayout.css`:
+  - `.planner-week-nav-desktop { display: none; }` by default (mobile)
+  - Inside the existing `@media (min-width: 768px)` block:
+    `display: flex; align-items: center; justify-content: center;
+     gap: 16px; padding: 14px 28px 0; font-size: 15px; font-weight: 600;
+     color: var(--text-primary);`
+  - `.planner-week-nav-btn`: transparent button, no border, 18px,
+    `color: var(--gold)`, 4px/8px padding, cursor pointer, Lexend.
+    Hover → `var(--gold-light)`.
 
-- `AddSubjectSheet.css`:
-  - `.add-sheet-details` — flex column container
-  - `.add-sheet-detail-block` — `margin-bottom: 10px` (0 on last child)
-  - `.add-sheet-detail-label` — 10px / 600 / `var(--gold)`, `margin-bottom: 4px`
-  - `.add-sheet-detail-input` — full width, `var(--bg-surface)` background,
-    `1px solid var(--border)`, `border-radius: 7px`, `7px 10px` padding,
-    13px Lexend (via `font-family: inherit`), `var(--text-primary)` color
-  - `.add-sheet-detail-input:focus` — `border-color: var(--gold); outline: none`
+### Fix 3 — Student selector in desktop sidebar (lifted state)
+This required lifting the active planner student out of the planner tool
+and into the shell so the sidebar can both show and change it.
 
-- `PlannerLayout.jsx`:
-  - `handleBatchAddSubject(subject, cells, lessonDetails)` — new third arg
-  - Per cell: `const lesson = details[dayIndex] ?? '';` then pass into
-    `importCell(... { lesson, note: '', done: false, flag: false }, false)`
-  - `importCell` already `.trim()`s the lesson field internally, so blank/
-    whitespace values still result in `lesson: ''` as before
-  - `overwrite: false` semantics unchanged — existing cells are still preserved
+- `packages/dashboard/src/App.jsx`:
+  - New `const [plannerStudent, setPlannerStudent] = useState('Orion')`
+  - Calls `useSettings(user?.uid, plannerStudent)` at the shell level to
+    get `students` and `subjectsByStudent`
+  - Passes `student / setStudent / students / subjectsByStudent` down to
+    `<PlannerTab>` and `students / activeStudent / onStudentChange` down
+    to `<BottomNav>`.
+- `packages/dashboard/src/tools/planner/hooks/usePlannerUI.js`:
+  - Removed `student / setStudent` state from the hook (now lifted).
+  - All other UI state (day, sheets, editTarget) unchanged.
+- `packages/dashboard/src/tabs/PlannerTab.jsx`:
+  - Accepts `student, setStudent, students, subjectsByStudent` props.
+  - Dropped its internal `useSettings` call (shell owns it now).
+  - Explicit `student={student}` and `setStudent={setStudent}` passed to
+    `<PlannerLayout>` alongside the `{...ui}` spread.
+  - Fallback effect (if `students` no longer contains the selected name)
+    moved to use the lifted `setStudent` — same behavior as before.
+- `packages/dashboard/src/components/BottomNav.jsx`:
+  - New props: `students, activeStudent, onStudentChange`.
+  - New JSX block: `.bn-students` — renders only when
+    `activeTab === 'planner' && students?.length > 0`.
+  - Label "STUDENT" + one `.bn-student-btn` per student. Active student
+    gets gold-pale background + gold text, inactive renders muted white.
+- `packages/dashboard/src/components/BottomNav.css`:
+  - `.bn-students { display: none; }` base (mobile).
+  - `@media (min-width: 768px) .bn-students`:
+    - `display: block`, `padding: 10px 8px 12px`,
+      `border-top: 1px solid rgba(255,255,255,0.08)`
+  - `.bn-students-label`: 9px / 600 / uppercase / 0.1em tracking,
+    `rgba(255,255,255,0.35)`, `padding: 0 10px; margin-bottom: 6px`.
+  - `.bn-student-btn`: full-width, `padding: 8px 10px; border-radius: 8px;
+    font-size: 12px;` — muted inactive, gold-pale + gold text when active.
 
-Build verified clean (dashboard ~640 KB, te-extractor 20 KB). No new
-deps, no route/redirect changes, no Firestore shape changes — lessons
-are written into the existing `lesson` field on the cell document.
+### Fix 4 — Planner header icon buttons hidden on desktop
+- Covered automatically by Fix 1 (entire `.header` hidden). Nothing else
+  to do. Confirmed by inspection — those buttons were all inside `.header`.
+
+### Fix 5 — Version bump to v0.22.0
+- `packages/dashboard/package.json`: 0.21.2 → 0.22.0
+- `packages/shared/package.json`:    0.1.0  → 0.22.0
+- `packages/te-extractor/package.json`: 0.20.4 → 0.22.0
+- UI version displays all read directly from `package.json`:
+  - `BottomNav.jsx` → `pkg.version` (sidebar footer)
+  - `Header.jsx` (planner, mobile) → `version` import
+  - `SettingsSheet.jsx` (planner) → `version` import
+  All three display `v0.22.0` automatically — no string edits required.
+
+Build verified clean at each step. `@homeschool/dashboard@0.22.0`,
+`@homeschool/te-extractor@0.22.0`. VITE env warnings on te-extractor
+are expected (Netlify injects at deploy).
 
 ---
 
 ## What is currently incomplete / pending
 
-1. **Browser smoke test** — none of the session 16 changes have been
-   exercised in a live browser. Walk through:
-   - SubjectCard large checkbox toggles done (Fix 1 — session 16 earlier)
-   - Dark mode readability (Fix 2 — session 16 earlier)
-   - Batch add basic flow (Fix 3 — session 16 earlier):
-     pre-selects current day + student, multi-select works, skip-if-exists,
-     All Day Event unchanged
-   - **New — Lesson details flow:**
-     - Type subject "Math" → details section stays hidden while no days selected
-     - With Mon pre-selected, details section shows one input for Mon
-     - Select Wed → Wed row appears at bottom of details list
-     - Type "Ch 5" into Mon, then deselect Mon → Mon row gone, text discarded
-     - Reselect Mon → input is blank (discard is intentional)
-     - Fill Mon "Ch 5" and Wed "Ch 6", tap confirm → cells written with
-       those lessons; existing cells on other days are still preserved
+1. **Browser smoke test** — none of v0.22.0 has been run in a browser:
+   - Mobile: planner header still 132px, student pills row still works,
+     week nav in row 2 still clickable, no visual regression.
+   - Desktop: planner header totally hidden, week nav visible above
+     DayStrip in the content column, sidebar "Student" section appears
+     only on Planner tab and changes update the planner view.
+   - Switching tabs (Home → Planner → Rewards): sidebar student section
+     hides/shows correctly.
+   - Dark mode: sidebar student pills still readable.
 
-2. **Import merge bug** (inherited from session 15) —
-   `calm-whistling-clock.md` plan at `/root/.claude/plans/`. Rob reported
-   second PDF import with "Replace existing schedule" OFF still overwrites
-   data. Not touched this session.
+2. **Orphaned file** — `packages/dashboard/src/tools/planner/App.jsx` is
+   not imported anywhere (shell uses `PlannerTab.jsx` directly) and still
+   references the old `useSettings` call + `ui.student` pattern. Dead
+   code; Vite tree-shakes it. Safe to delete in a future cleanup pass —
+   not touched this session to keep the diff minimal.
 
-3. **BottomNav.css minor bug** (inherited) — `.bn-signout` has `font-family`
-   declared twice. Harmless.
+3. **DayStrip sticky offset on desktop** — `App.css` still has
+   `.shell-content .day-strip { top: 132px }` from when the planner
+   header occupied that space. The header is now hidden on desktop, so
+   this offset creates empty visual space above the sticky DayStrip when
+   scrolling. Not urgent, but worth revisiting next session.
 
-4. **Desktop layout verification** (inherited) — session 15 desktop sidebar
-   work not yet tested in browser.
+4. **Import merge bug** (inherited from session 15) —
+   `calm-whistling-clock.md` plan at `/root/.claude/plans/`. Not touched.
 
-5. **Chunk size** — JS bundle ~640 KB. Known/expected.
+5. **BottomNav.css minor bug** (inherited) — `.bn-signout` has
+   `font-family` declared twice. Harmless.
 
-6. **CLAUDE.md updates** — needs:
-   - SubjectCard layout note (three-column: checkbox | content | flag)
-   - AddSubjectSheet batch-add architecture including the new
-     `lessonDetails` third arg to `onAdd`/`handleBatchAddSubject`
-   - Dark-mode contrast rule: new labels/section headings should use
-     `var(--text-secondary)` (not `var(--text-muted)`); subject-like labels
-     should use `var(--text-primary)` (not `var(--ink)`, which is too dark
-     on dark mode)
+6. **Chunk size** — dashboard JS bundle ~640 KB. Known/expected.
+
+7. **CLAUDE.md updates** — still needs:
+   - Session 16 notes: SubjectCard three-column layout; AddSubjectSheet
+     batch-add model with `lessonDetails` arg; dark-mode token rule
+     (`text-secondary` vs `text-muted`, `text-primary` vs `ink`).
+   - v0.22.0 notes: student state lifted to `App.jsx`; desktop sidebar
+     hosts the Student selector; planner header hidden on desktop;
+     desktop week nav lives inside `.planner-body`.
 
 ---
 
 ## What the next session should start with
 
 1. Read CLAUDE.md + HANDOFF.md (standard)
-2. Browser smoke test all of session 16 (checkbox, dark mode, batch add,
-   lesson details)
-3. Update CLAUDE.md with session 16 decisions
-4. If import merge bug still repros: follow `calm-whistling-clock.md` plan
+2. Browser smoke test v0.22.0 on both mobile and desktop widths
+3. Update CLAUDE.md with the accumulated session 16 / v0.22.0 notes
+4. Consider deleting orphaned `tools/planner/App.jsx` + fixing
+   DayStrip sticky offset on desktop (item 3 above)
+5. If import merge bug still repros: follow `calm-whistling-clock.md` plan
 
 ---
 
 ## Key file locations (updated this session)
 
 ```
-packages/dashboard/src/tools/planner/components/
-├── AddSubjectSheet.jsx            # + lessonDetails state + details JSX block
-├── AddSubjectSheet.css            # + .add-sheet-details / -detail-block / -label / -input
-└── PlannerLayout.jsx              # handleBatchAddSubject(subject, cells, lessonDetails)
+packages/dashboard/
+├── package.json                                   # v0.22.0
+├── src/
+│   ├── App.jsx                                    # lifted plannerStudent + useSettings
+│   ├── components/
+│   │   ├── BottomNav.jsx                          # new .bn-students block
+│   │   └── BottomNav.css                          # + desktop student section styles
+│   ├── tabs/
+│   │   └── PlannerTab.jsx                         # accepts lifted props
+│   └── tools/planner/
+│       ├── hooks/usePlannerUI.js                  # dropped student state
+│       └── components/
+│           ├── Header.css                         # desktop: .header display:none
+│           ├── PlannerLayout.jsx                  # + desktop week nav JSX + formatWeekLabel import
+│           └── PlannerLayout.css                  # + .planner-week-nav-desktop styles
+packages/shared/package.json                       # v0.22.0
+packages/te-extractor/package.json                 # v0.22.0
 ```
