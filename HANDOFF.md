@@ -1,161 +1,225 @@
-# HANDOFF — v0.22.11 CSS file splits (2 of 5)
+# HANDOFF — v0.22.12 CSS file splits (final 3 of 5)
 
 ## What was completed this session
 
-Four-commit refactor session knocking out the two smallest over-300-line
-CSS files. Both drop under the hard limit; three splits remain for a
-later session.
+Five-commit refactor wrapping up the CSS file-size cleanup. Every CSS
+file in `packages/dashboard/src/` is now under the 300-line hard
+limit. Five new files created, three large files slimmed.
 
-### Commit 1 — `refactor: split HomeHeader.css from HomeTab.css (v0.22.11)`
+### Commit 1 — `refactor: split UndoSickSheet.css from PlannerLayout.css`
 
-**Files touched (3):**
-- `packages/dashboard/src/tabs/HomeHeader.css` — NEW, 34 lines
-- `packages/dashboard/src/tabs/HomeTab.css` — 324 → 266 lines
-- `packages/dashboard/src/tabs/HomeTab.jsx` — +1 import line
+**Files (3):**
+- `packages/dashboard/src/tools/planner/components/UndoSickSheet.css` — NEW, 99 lines
+- `packages/dashboard/src/tools/planner/components/PlannerLayout.css` — 360 → 260
+- `packages/dashboard/src/tools/planner/components/PlannerLayout.jsx` — +1 import line
 
-**What moved:** Only the live brand-header rules (`.home-header`,
-`.home-header-brand`, `.home-header-logo`, `.home-header-name`,
-`.home-header-accent`) — exactly what `HomeTab.jsx:28-36` actually renders.
+**Moved:** Entire "Undo Sick Day confirmation sheet" block (overlay,
+sheet, slide-up `@keyframes undo-sick-up`, handle, header, title,
+close + hover, body, msg, footer, cancel + hover, confirm + hover).
+**No @media slice moved** — neither the `@media (min-width: 400px)
+and (max-width: 1023px)` block nor the `@media (min-width: 1024px)`
+block contained any `.undo-sick-*` rules. Verified via grep before
+and after.
 
-**What got deleted outright:** `.home-header-actions` and
-`.home-header-btn` (+ `:hover`) — approximately 22 lines of dead CSS
-that have had no JSX since v0.22.6 when the right-side icon buttons
-were removed. Not moved to HomeHeader.css; removed from the codebase.
-Flagged as dead in the v0.22.10 diagnostic.
+The undo-sick sheet's JSX is still inline in `PlannerLayout.jsx` (not
+in a separate component file). `PlannerLayout.css` and `UndoSickSheet.css`
+are both imported from the same JSX file, so the cascade resolves
+identically to before the split.
 
-**Comments cleaned up:**
-- Old line 1: `Outer wrapper — no padding; header is full-width` →
-  new: `Outer wrapper`. The "header is full-width" phrase was stale
-  (the outer wrapper never styled the header — it just contained it).
-- Old line 7: `Brand header — dark bar with dark mode toggle + sign-out`
-  → deleted with the block. In HomeHeader.css it becomes
-  `Brand header — dark bar with logo + school name (mobile only)`,
-  which matches the v0.22.6 reality.
+### Commit 2 — `refactor: split SettingsRow.css and SettingsSubjects.css from SettingsTab.css`
 
-**@media blocks:** Left entirely untouched in HomeTab.css per spec.
-The desktop `@media (min-width: 1024px)` block still contains
-`.home-header { display: none }` — that rule targets a class now
-defined in HomeHeader.css, but CSS cascade works on the rendered
-element, not on file origin, so it's fine. Both files are imported
-by HomeTab.jsx in the same render so the cascade resolves correctly.
+**Files (4):**
+- `packages/dashboard/src/tabs/SettingsRow.css` — NEW, 130 lines
+- `packages/dashboard/src/tabs/SettingsSubjects.css` — NEW, 63 lines
+- `packages/dashboard/src/tabs/SettingsTab.css` — 376 → **185** (under the 200-line target)
+- `packages/dashboard/src/tabs/SettingsTab.jsx` — +2 import lines
 
-**Import order in HomeTab.jsx:** `HomeTab.css` first, then
-`HomeHeader.css` immediately below. Base styles load in deterministic
-order; the desktop `display: none` override in HomeTab.css still fires
-because `@media` rules layer on top regardless of file source order.
+**Moved to SettingsRow.css:** Row + row-icon + row-body + row-actions
+block — all `.st-row*` classes (base + variants + hovers). Plus the
+4 row-related rules from the large-phone @media block:
+`.st-row { padding: 16px }`, `.st-row-title { font-size: 15px }`,
+`.st-row-sub { font-size: 12px }`,
+`.st-row-icon { width: 36px; height: 36px; font-size: 18px }`.
+A new bounded `@media (min-width: 400px) and (max-width: 1023px)`
+block was created in SettingsRow.css for these.
 
-### Commit 2 — `refactor: split UploadResult.css from UploadSheet.css`
+**Moved to SettingsSubjects.css:** Default Subjects sub-section —
+`.st-subjects`, `.st-subjects-tabs`, `.st-subjects-tab`, `--active`,
+`.st-subject-chip`, `.st-subject-remove` + hover, `.st-subjects-add`.
+**No @media slice moved** — none of these classes appear in either
+@media block.
 
-**Files touched (3):**
-- `packages/dashboard/src/tools/planner/components/UploadResult.css`
-  — NEW, 89 lines
-- `packages/dashboard/src/tools/planner/components/UploadSheet.css`
-  — 333 → 247 lines
-- `packages/dashboard/src/tools/planner/components/UploadSheet.jsx`
-  — +1 import line
+**Stayed in SettingsTab.css:** Outer tab + grid + section label
+(1–50), toggle + chevron + badge (173–221 in old file), inline input +
+remove-confirm row + version block (286–352 in old file), plus the
+remaining @media rules (section label / toggle / version on large
+phone; tab padding + grid on desktop). Final size 185 lines —
+comfortably under both the 300 hard limit AND the 200 target.
 
-**What moved to UploadResult.css:**
-- Result-preview block (lines 183–246 of the old file): `result-meta`,
-  `divider`, `lesson-list`, `day-group` (+ `:last-child`), `day-header`,
-  `lesson-row`, `lesson-subject`, `lesson-num`, `result-footer`.
-- View Log button (lines 248–262 of the old file): `.upload-sheet-log-btn`
-  + `:hover`. Moved because it only renders after a parsed result.
-- Scoped slice of the large-phone `@media (min-width: 400px) and
-  (max-width: 1023px)` block — specifically the 5 result/log overrides
-  (`result-meta`, `day-header`, `lesson-row`, `lesson-num`,
-  `result-footer`). A dedicated @media block was created in
-  UploadResult.css for these.
+**Import order in SettingsTab.jsx** (from top to bottom):
+`SettingsTab.css` → `SettingsRow.css` → `SettingsSubjects.css`. No
+selector overlap between the three files; cascade order is irrelevant
+for correctness but matches CLAUDE.md's "main → split" reading order.
 
-**What stayed in UploadSheet.css:**
-- Backdrop, sheet panel + slide-up + handle, ink header, body
-  container, file picker zone, wipe toggle, parsing spinner, error
-  pill, success banner, footer with cancel + import/apply buttons.
-- The large-phone @media block with the remaining 11 rules
-  (title, body, file-hint, filename, wipe-row, spinner-row, error,
-  success, footer, cancel, import/apply).
+### Commit 3 — `refactor: split AddSubjectSheetChrome.css and AddSubjectDayPicker.css from AddSubjectSheet.css`
 
-**No `@media (min-width: 1024px)` block existed in this file — so
-nothing desktop-related to worry about.**
+**Files (4):**
+- `packages/dashboard/src/tools/planner/components/AddSubjectSheetChrome.css`
+  — NEW, 113 lines
+- `packages/dashboard/src/tools/planner/components/AddSubjectDayPicker.css`
+  — NEW, 87 lines
+- `packages/dashboard/src/tools/planner/components/AddSubjectSheet.css`
+  — 408 → 215
+- `packages/dashboard/src/tools/planner/components/AddSubjectSheet.jsx`
+  — +2 import lines
 
-**Import order in UploadSheet.jsx:** `UploadSheet.css` first, then
-`UploadResult.css`. No cascade concerns — the two files have disjoint
-selectors.
+**Moved to AddSubjectSheetChrome.css:** Sheet shell — `.add-sheet-overlay`,
+`.add-sheet`, `@keyframes add-sheet-up`, `.add-sheet-handle`,
+`.add-sheet-header`, `.add-sheet-title`, `.add-sheet-close` + hover,
+`.add-sheet-body` — PLUS the confirm button block
+(`.add-sheet-confirm-btn` + `:hover:not(:disabled)` + `:disabled`).
+Plus the 3 chrome/confirm rules from the large-phone @media block:
+title (17px), body (padding/gap), confirm-btn (padding/font).
 
-### Commit 3 — `chore: bump version to v0.22.11`
+**Moved to AddSubjectDayPicker.css:** Day pills + per-day details —
+`.add-sheet-day-pills`, `.add-sheet-day-pill`, `--active`,
+`.add-sheet-day-short`, `.add-sheet-day-date`, `.add-sheet-details`,
+`.add-sheet-detail-block` + `:last-child`, `.add-sheet-detail-label`,
+`.add-sheet-detail-input` + `:focus`. Plus the 4 day-picker rules
+from the large-phone @media block: day-pill (padding), day-short,
+day-date, detail-input (raised to 16px for iOS zoom guard — comment
+preserved in the new file).
 
-- `packages/dashboard/package.json`:    0.22.10 → 0.22.11
-- `packages/shared/package.json`:       0.22.10 → 0.22.11
-- `packages/te-extractor/package.json`: 0.22.10 → 0.22.11
+**Stayed in AddSubjectSheet.css:** Body content sections — custom
+input row, All Day Event section, quick-add presets, row header,
+student pills, summary line — plus the remaining 7 @media rules
+(input, add-btn, section-label, preset-btn, student-pill, summary,
+allday-btn). Final size 215 lines.
+
+**Import order in AddSubjectSheet.jsx** (top to bottom):
+`AddSubjectSheet.css` → `AddSubjectSheetChrome.css` →
+`AddSubjectDayPicker.css`. Disjoint selector sets across the three
+files; the new files only collide with old AddSubjectSheet.css inside
+the old @media block, and that's been carved cleanly per class.
+
+### Commit 4 — `chore: bump version to v0.22.12`
+
+- `packages/dashboard/package.json`:    0.22.11 → 0.22.12
+- `packages/shared/package.json`:       0.22.11 → 0.22.12
+- `packages/te-extractor/package.json`: 0.22.11 → 0.22.12
 
 Build verified clean at every commit
-(`@homeschool/dashboard@0.22.11`, `@homeschool/te-extractor@0.22.11`).
+(`@homeschool/dashboard@0.22.12`, `@homeschool/te-extractor@0.22.12`).
 
 ---
 
-## File size report (post-session)
+## Final file size report
+
+**Every CSS file in `packages/dashboard/src/` is now under 300 lines.**
+Largest is HomeTab.css at 266.
 
 | File | Before | After | Status |
 |---|---|---|---|
-| HomeTab.css | 324 | **266** | ✅ under 300 |
-| UploadSheet.css | 333 | **247** | ✅ under 300 |
-| HomeHeader.css | — | 34 | ✅ new, tiny |
-| UploadResult.css | — | 89 | ✅ new, tiny |
+| AddSubjectSheet.css | 408 | **215** | ✅ |
+| SettingsTab.css | 376 | **185** | ✅ (under 200 target) |
+| PlannerLayout.css | 360 | **260** | ✅ |
+| UploadSheet.css (v0.22.11) | 333 | 247 | ✅ |
+| HomeTab.css (v0.22.11) | 324 | 266 | ✅ |
 
-### Still over 300 (three files remain — next split session)
+**New files created across both split sessions (v0.22.11 + v0.22.12):**
 
-| File | Lines | Suggested split (per v0.22.10 diagnostic) |
+| File | Lines | Source |
 |---|---|---|
-| AddSubjectSheet.css | 408 | Extract day-picker (day pills + per-day details, 78 lines) → ~330 |
-| SettingsTab.css | 376 | Extract Default Subjects sub-section (63 lines) → ~313; second split of row styles (122 lines) brings it under 200 |
-| PlannerLayout.css | 360 | Extract Undo Sick Day sheet (99 lines) → ~261. Largest single win; the sheet is fully self-contained |
+| HomeHeader.css (v0.22.11) | 34 | from HomeTab.css |
+| UploadResult.css (v0.22.11) | 89 | from UploadSheet.css |
+| UndoSickSheet.css (v0.22.12) | 99 | from PlannerLayout.css |
+| SettingsRow.css (v0.22.12) | 130 | from SettingsTab.css |
+| SettingsSubjects.css (v0.22.12) | 63 | from SettingsTab.css |
+| AddSubjectSheetChrome.css (v0.22.12) | 113 | from AddSubjectSheet.css |
+| AddSubjectDayPicker.css (v0.22.12) | 87 | from AddSubjectSheet.css |
 
-All three have suggested seams documented in the diagnostic. Easy next
-session.
+Top of the current ordered list (largest first):
+```
+266 HomeTab.css
+260 PlannerLayout.css
+247 UploadSheet.css
+247 BottomNav.css
+226 EditSheet.css
+224 SickDaySheet.css
+217 SubjectCard.css
+215 AddSubjectSheet.css
+214 ActionSheet.css
+205 Header.css   (planner)
+185 SettingsTab.css
+... all others under 200 ...
+```
+
+---
+
+## CLAUDE.md drift from this session
+
+CLAUDE.md's "CSS files currently over 300 lines (known, pending split)"
+list is now stale — all five entries are below 300. The list belongs
+under the file-size-rules section and can be removed entirely or
+replaced with a one-line "all CSS files currently under 300" note.
+
+CLAUDE.md's planner file-structure tree still mentions
+`PlannerLayout.css (360 lines — over 300 limit, pending split)`,
+`AddSubjectSheet.css (408 lines — over 300)`, and
+`UploadSheet.css (333 lines — over 300)`. Those parenthetical line
+counts are now stale and the "over 300" notes are wrong. Same for
+the dashboard shell tree's notes on `HomeTab.css (324 lines — over
+300 limit)` and `SettingsTab.css (376 lines — over 300 limit)`.
+Worth a CLAUDE.md sweep on next opportunity — none of this affects
+runtime.
+
+The new files (HomeHeader, UploadResult, UndoSickSheet, SettingsRow,
+SettingsSubjects, AddSubjectSheetChrome, AddSubjectDayPicker) aren't
+documented in CLAUDE.md's file-structure trees yet. Same sweep can
+add them.
 
 ---
 
 ## What is currently incomplete / pending
 
 1. **Browser smoke test** — not run. Priority checks:
-   - HomeTab renders correctly on mobile (brand header bar at top, all
-     the same). HomeHeader.css carries the styles now; verify by
-     toggling dark mode (header should stay `#22252e` — still does).
-   - Desktop `@media (min-width: 1024px) { .home-header { display: none } }`
-     still hides the header above 1024px (rule still lives in HomeTab.css).
-   - UploadSheet result preview renders correctly after a successful
-     parse: meta line, per-day groups with bold day headers, indented
-     lesson rows, result footer, View Log button.
-   - Large-phone (400–1023px) overrides for result preview still apply:
-     meta 15px, day-header 14px, lesson-row 14px, lesson-num 13px,
-     result-footer 13px.
+   - Settings tab — all rows render with the same look (the row
+     styles now live in SettingsRow.css). Toggle the dark-mode
+     toggle to confirm tokens still resolve. Expand "Default
+     Subjects" to confirm the subjects sub-section renders (now
+     in SettingsSubjects.css).
+   - Planner — open Sick Day, mark a day sick, then tap "Undo Sick
+     Day" to bring up the undo confirmation sheet. Confirm it slides
+     up correctly and the cancel/confirm buttons style correctly
+     (UndoSickSheet.css).
+   - Add Subject sheet — open it, confirm sheet shell + header (chrome),
+     custom input row, presets, day pills + per-day detail inputs
+     (day picker), student pills, summary, and the bottom Confirm
+     button all render correctly. Test on a wide phone (≥400px) to
+     make sure the iOS zoom-guard 16px detail-input still applies.
 
-2. **Three CSS files still over 300 lines** — see table above.
+2. **CLAUDE.md drift** — see section above. One CLAUDE.md update
+   would clean up the over-300 list and refresh the file trees with
+   the new split files + their line counts. Low priority; runtime
+   unaffected.
 
-3. **Dead CSS deleted this session:** 22 lines of unused
-   `.home-header-actions` + `.home-header-btn` + `:hover` removed
-   from HomeTab.css. Not a regression — there was no JSX for these
-   since v0.22.6.
-
-4. **Carry-overs from earlier sessions (untouched this session):**
+3. **Carry-overs (untouched this session):**
    - iPad portrait breakpoint decision (still falls into large-phone band)
    - iPhone SE 300px grid overflow
    - Planner Phase 2 features (auto-roll, week history, copy last week, export PDF)
    - Academic Records tab (Coming Soon placeholder)
    - Import merge bug (inherited from v0.22.3)
-   - CLAUDE.md DEAD-file entries — now stale since v0.22.10 deleted the
-     eight files they describe. Low priority.
 
 ---
 
 ## What the next session should start with
 
 1. Read CLAUDE.md + HANDOFF.md (standard).
-2. Browser smoke test v0.22.11 — HomeTab and UploadSheet post-parse
-   preview.
-3. Pick the next split: biggest win is PlannerLayout.css (extract
-   Undo Sick Day sheet, 99 lines) or AddSubjectSheet.css (extract
-   day picker, 78 lines). SettingsTab.css is the largest but needs
-   two splits to get under 200.
+2. Browser smoke test v0.22.12 — Settings rows / Subjects sub-section,
+   Undo Sick Day sheet, Add Subject sheet (all sub-sections).
+3. Decide direction: CLAUDE.md cleanup sweep (post-split file sizes
+   + new file inventory) OR start Phase 2 work (Academic Records,
+   planner Phase-2 features).
 
 ---
 
@@ -163,20 +227,26 @@ session.
 
 ```
 packages/dashboard/
-├── package.json                                                    # v0.22.11
+├── package.json                                                    # v0.22.12
 ├── src/
 │   ├── tabs/
-│   │   ├── HomeTab.jsx                                             # + import './HomeHeader.css'
-│   │   ├── HomeTab.css                                             # 324 → 266 (split + 22 dead lines removed)
-│   │   └── HomeHeader.css                                          # NEW — 34 lines
+│   │   ├── SettingsTab.jsx                                         # +2 imports (SettingsRow, SettingsSubjects)
+│   │   ├── SettingsTab.css                                         # 376 → 185
+│   │   ├── SettingsRow.css                                         # NEW — 130
+│   │   └── SettingsSubjects.css                                    # NEW — 63
 │   └── tools/planner/components/
-│       ├── UploadSheet.jsx                                         # + import './UploadResult.css'
-│       ├── UploadSheet.css                                         # 333 → 247 (split)
-│       └── UploadResult.css                                        # NEW — 89 lines
-packages/shared/package.json                                        # v0.22.11
-packages/te-extractor/package.json                                  # v0.22.11
+│       ├── PlannerLayout.jsx                                       # +1 import (UndoSickSheet)
+│       ├── PlannerLayout.css                                       # 360 → 260
+│       ├── UndoSickSheet.css                                       # NEW — 99
+│       ├── AddSubjectSheet.jsx                                     # +2 imports (Chrome, DayPicker)
+│       ├── AddSubjectSheet.css                                     # 408 → 215
+│       ├── AddSubjectSheetChrome.css                               # NEW — 113
+│       └── AddSubjectDayPicker.css                                 # NEW — 87
+packages/shared/package.json                                        # v0.22.12
+packages/te-extractor/package.json                                  # v0.22.12
 ```
 
-Total: 6 files touched (2 created, 2 edited + slimmed, 2 imports
-added), plus 3 package.json version bumps. Net diff: two files split
-cleanly, two files under the limit, 22 lines of dead CSS purged.
+Total: 12 source files touched (5 created, 3 split + slimmed, 3 jsx
+imports added, 1 read-only confirm), plus 3 package.json version bumps.
+After v0.22.11 + v0.22.12 combined: **all 5 over-limit files are now
+under the limit**, with 7 new modular CSS files created.
