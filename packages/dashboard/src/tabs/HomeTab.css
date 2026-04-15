@@ -276,7 +276,33 @@
 
 .home-action-btn--ghost:hover { border-color: var(--gold); color: var(--gold); }
 
-/* Desktop: header hidden (sidebar provides branding) */
+/* ── Desktop (≥768px) — full-width content; sidebar owns branding ── */
+/* Mobile layout above is COMPLETELY UNCHANGED. */
 @media (min-width: 768px) {
   .home-header { display: none; }
+
+  /* Content fills the shell column with generous horizontal padding */
+  .home-content {
+    max-width: none;
+    padding: 24px 28px 32px;
+  }
+
+  /* Summary cards keep the 3-card row but with more breathing room */
+  .home-summary-row { gap: 16px; margin-bottom: 28px; }
+  .home-summary-card { padding: 20px 16px; }
+  .home-summary-value { font-size: 28px; }
+
+  /* Actions inline on desktop, centered, capped width so they don't stretch
+     across the full column — reads as a tidy action cluster. */
+  .home-actions {
+    flex-direction: row;
+    justify-content: center;
+    gap: 12px;
+    max-width: 520px;
+    margin: 24px auto 0;
+  }
+  .home-action-btn {
+    width: auto;
+    padding: 13px 28px;
+  }
 }
