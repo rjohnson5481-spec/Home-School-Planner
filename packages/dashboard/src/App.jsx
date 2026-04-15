@@ -6,6 +6,7 @@ import HomeTab             from './tabs/HomeTab';
 import PlannerTab          from './tabs/PlannerTab';
 import RewardsTab          from './tabs/RewardsTab';
 import AcademicRecordsTab  from './tabs/AcademicRecordsTab';
+import SettingsTab         from './tabs/SettingsTab';
 import { useSettings }     from './tools/planner/hooks/useSettings.js';
 import { useDarkMode }     from './hooks/useDarkMode.js';
 
@@ -17,11 +18,11 @@ export default function App() {
   // header still uses these same props — behavior is unchanged.
   const [plannerStudent, setPlannerStudent] = useState('Orion');
   const { students, subjectsByStudent } = useSettings(user?.uid, plannerStudent);
-  // Dark-mode toggle is exposed through the desktop sidebar so every
-  // tab (including Home, which has no visible header on desktop) can
-  // flip modes. The hook writes to `localStorage.color-mode` and the
-  // <html data-mode> attribute, so it stays in sync with every other
-  // tool's useDarkMode subscriber.
+  // Dark-mode state lives at the shell so the Settings tab (and the
+  // BottomNav sidebar, if ever needed again) can share a single source
+  // of truth. The hook writes to `localStorage.color-mode` and the
+  // <html data-mode> attribute, so any other useDarkMode subscriber
+  // stays in sync automatically.
   const { mode: colorMode, toggle: toggleDarkMode } = useDarkMode();
 
   if (loading) return null;
@@ -41,6 +42,13 @@ export default function App() {
         )}
         {activeTab === 'rewards'  && <RewardsTab />}
         {activeTab === 'academic' && <AcademicRecordsTab />}
+        {activeTab === 'settings' && (
+          <SettingsTab
+            user={user}
+            colorMode={colorMode}
+            onToggleDarkMode={toggleDarkMode}
+          />
+        )}
       </div>
       <BottomNav
         activeTab={activeTab}
@@ -48,8 +56,6 @@ export default function App() {
         students={students}
         activeStudent={plannerStudent}
         onStudentChange={setPlannerStudent}
-        colorMode={colorMode}
-        onToggleDarkMode={toggleDarkMode}
       />
     </div>
   );
