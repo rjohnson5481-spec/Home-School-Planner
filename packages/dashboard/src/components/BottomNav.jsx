@@ -1,4 +1,3 @@
-import { signOut } from '@homeschool/shared';
 import logo from '@homeschool/shared/assets/logo.png';
 import pkg from '../../package.json';
 import './BottomNav.css';
@@ -9,21 +8,19 @@ const TABS = [
   { id: 'rewards',  icon: '🏅', label: 'Rewards' },
   { id: 'te',       icon: '📄', label: 'TE Extractor', external: '/te-extractor/' },
   { id: 'academic', icon: '🎓', label: 'Records' },
+  { id: 'settings', icon: '⚙️', label: 'Settings' },
 ];
 
 // Props: activeTab (string), onTabChange (fn),
-//        students (string[]), activeStudent (string), onStudentChange (fn),
-//        colorMode ('light' | 'dark'), onToggleDarkMode (fn).
+//        students (string[]), activeStudent (string), onStudentChange (fn).
 // The student section renders only when activeTab === 'planner' and only
-// on desktop (hidden on mobile via CSS). The footer (sign-out + dark-mode
-// toggle + version) is always rendered and shown only on desktop via CSS.
+// on desktop (hidden on mobile via CSS). The footer shows only the version
+// on desktop — dark-mode toggle + sign-out moved into the Settings tab.
 export default function BottomNav({
   activeTab, onTabChange,
   students, activeStudent, onStudentChange,
-  colorMode, onToggleDarkMode,
 }) {
   const showStudents = activeTab === 'planner' && (students?.length ?? 0) > 0;
-  const isDark = colorMode === 'dark';
 
   return (
     <nav className="bottom-nav">
@@ -81,23 +78,8 @@ export default function BottomNav({
         </div>
       )}
 
-      {/* Desktop-only footer with dark-mode toggle + sign-out + version */}
+      {/* Desktop-only footer: version only (sign-out + dark-mode live in Settings tab) */}
       <div className="bn-footer">
-        <div className="bn-footer-row">
-          {onToggleDarkMode && (
-            <button
-              className="bn-mode-btn"
-              onClick={onToggleDarkMode}
-              aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-              title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-            >
-              {isDark ? '☀️' : '🌙'}
-            </button>
-          )}
-          <button className="bn-signout" onClick={() => signOut()}>
-            🚪 Sign out
-          </button>
-        </div>
         <div className="bn-version">v{pkg.version}</div>
       </div>
 
