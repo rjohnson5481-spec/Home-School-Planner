@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { GRADING_TYPE_LETTER } from '../constants/academics.js';
 import './AddEditEnrollmentSheet.css';
+import './AddEditEnrollmentForm.css';
 
 // Stacked bottom sheet for adding or editing one enrollment.
 // Stacks ABOVE EnrollmentSheet (overlay z-index 310 vs list 300).
