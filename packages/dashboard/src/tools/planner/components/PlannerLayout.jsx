@@ -10,6 +10,7 @@ import MonthSheet      from './MonthSheet.jsx';
 import SickDaySheet    from './SickDaySheet.jsx';
 import { getMondayOf, toWeekId, mondayWeekId, formatWeekLabel, DAY_SHORT, DAY_NAMES } from '../constants/days.js';
 import './PlannerLayout.css';
+import './UndoSickSheet.css';
 
 export default function PlannerLayout({
   user,
