@@ -12,6 +12,11 @@ export default defineConfig({
       manifest: false,
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+        // skipWaiting + clientsClaim: new service worker activates
+        // immediately on deploy so users don't see a stale-cache white
+        // screen while the old worker's clients are still open.
+        skipWaiting: true,
+        clientsClaim: true,
       },
     }),
   ],
