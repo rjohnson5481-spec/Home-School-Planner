@@ -47,8 +47,11 @@ All package.json entries use exact versions — no ^ or ~ prefixes.
 
 ## Deployment
 - Host: Netlify, connected to GitHub repo
-- App shell at root / — serves the dashboard (which contains planner + reward-tracker tabs)
-- TE Extractor at /te-extractor/ (separate vanilla-JS build)
+- Primary URL: `homeschool.grasphislove.com` (custom domain, live as of 2026-04-15)
+- Secondary URL: `ironandlight.netlify.app` (Netlify default, still works as fallback)
+- App shell at root `/` — serves the dashboard (which contains all tools as tabs)
+- TE Extractor at `/te-extractor/` (separate vanilla-JS build, links out from shell)
+- No `/planner/` or `/reward-tracker/` routes — those tools are tabs inside the shell
 - netlify.toml has exactly three redirects: /api/* → functions, /te-extractor/* → its index, /* → root index (SPA)
 - NOT GitHub Pages
 
@@ -144,6 +147,11 @@ Filtered client-side by current week dates — collection is small (~360 docs/ye
 /users/{uid}/rewardTracker/{studentName}/log/{docId}
   → { type: 'award' | 'deduct' | 'spend', points: number, note: string, createdAt: serverTimestamp }
 
+Note: path is `rewardTracker/{studentName}` with NO `students/` segment in
+between. A document path must have an even number of segments; adding
+`students/` would have made it odd. This is the v0.21.2 path-segment fix —
+do not "normalize" it to match the planner's `weeks/{weekId}/students/{name}` shape.
+
 Initial seed: Orion 50 pts, Malachi 60 pts. Seeding guarded by localStorage flag
 `rewardTracker_seeded_{uid}` — only runs once per browser on first visit after auth.
 Cash value: 15 pts = $1.00 (floor division). Next $1 threshold = next multiple of 15 above balance.
@@ -162,49 +170,50 @@ These can be manually deleted from the Firebase console. No migration script nee
 ## File structure — planner tool
 Planner now lives inside the dashboard shell. The shell's PlannerTab
 (`packages/dashboard/src/tabs/PlannerTab.jsx`) is the entry point and
-wires the planner hooks into PlannerLayout. A legacy `main.jsx` + `App.jsx`
-in `tools/planner/` is orphaned and tree-shaken — safe to delete.
+wires the planner hooks into PlannerLayout. The legacy `main.jsx` +
+`App.jsx` + `planner.css` in `tools/planner/` were deleted in v0.22.4.
 
 packages/dashboard/src/tools/planner/
-├── planner.css                  # global resets for planner (~17 lines)
 ├── firebase/
-│   ├── planner.js               # all Firestore reads/writes (~48 lines)
-│   └── settings.js              # read/write for settings students + subject presets (~40 lines)
+│   ├── planner.js               # all Firestore reads/writes
+│   └── settings.js              # read/write for settings students + subject presets
 │   # NO init.js or auth.js here — import db/auth/useAuth from @homeschool/shared
 ├── hooks/
-│   ├── useWeek.js               # week navigation state (~32 lines)
-│   ├── useSubjects.js           # subject list + day data subscriptions (~53 lines)
-│   ├── usePdfImport.js          # file upload + Netlify Function call (~48 lines)
-│   ├── usePlannerUI.js          # all local UI state, keeps App.jsx thin (~21 lines)
-│   ├── useDarkMode.js           # dark mode toggle (localStorage + html data-mode) (~22 lines)
-│   └── useSettings.js           # students list + per-student subjects from Firestore (~62 lines)
+│   ├── useWeek.js               # week navigation state
+│   ├── useSubjects.js           # subject list + day data subscriptions
+│   ├── usePdfImport.js          # file upload + Netlify Function call
+│   ├── usePlannerUI.js          # local UI state (sheet-open flags, editTarget, day)
+│   ├── useDarkMode.js           # dark mode toggle (legacy — shell also has its own)
+│   └── useSettings.js           # students list + per-student subjects from Firestore
 ├── components/
-│   ├── PlannerLayout.jsx        # full page layout, all sheets, toggle handlers (~111 lines)
-│   ├── PlannerLayout.css        # layout shell styles (~42 lines)
-│   ├── Header.jsx               # 3-row 132px fixed header; students from Firestore (~75 lines)
-│   ├── Header.css               # header styles (~123 lines)
-│   ├── DayStrip.jsx             # sticky day tab selector (~21 lines)
-│   ├── DayStrip.css             # day strip styles (~47 lines)
-│   ├── SubjectCard.jsx          # lesson card with done/flag toggles (~46 lines)
-│   ├── SubjectCard.css          # card styles (~88 lines)
-│   ├── EditSheet.jsx            # bottom sheet: lesson/note editor (~67 lines)
-│   ├── EditSheet.css            # edit sheet styles (~128 lines)
-│   ├── UploadSheet.jsx          # PDF import: picker → spinner → result (~80 lines)
-│   ├── UploadSheet.css          # upload sheet styles (~155 lines)
-│   ├── AddSubjectSheet.jsx      # preset grid + custom input (~65 lines)
-│   ├── AddSubjectSheet.css      # add sheet styles (~115 lines)
-│   ├── MonthSheet.jsx           # calendar bottom sheet, week jump (~75 lines)
-│   ├── MonthSheet.css           # month sheet styles (~60 lines)
-│   ├── SickDaySheet.jsx         # sick day checklist, cascade shift confirmation (~66 lines)
-│   ├── SickDaySheet.css         # sick day sheet styles (~172 lines)
-│   ├── SettingsSheet.jsx        # settings bottom sheet — appearance, students, subjects, app (~170 lines)
-│   └── SettingsSheet.css        # settings sheet styles (~320 lines)
+│   ├── PlannerLayout.jsx        # full page layout, all sheets, toggle handlers
+│   ├── PlannerLayout.css        # layout shell styles (360 lines — over 300 limit, pending split)
+│   ├── Header.jsx               # 3-row 132px fixed header; students from Firestore
+│   ├── Header.css               # header styles
+│   ├── DayStrip.jsx             # sticky day tab selector
+│   ├── DayStrip.css             # day strip styles
+│   ├── SubjectCard.jsx          # lesson card with done/flag toggles, large checkbox
+│   ├── SubjectCard.css          # card styles
+│   ├── EditSheet.jsx            # bottom sheet: lesson/note editor
+│   ├── EditSheet.css            # edit sheet styles
+│   ├── UploadSheet.jsx          # PDF import: picker → spinner → result
+│   ├── UploadSheet.css          # upload sheet styles (333 lines — over 300)
+│   ├── AddSubjectSheet.jsx      # batch add: day pills + student pills + summary
+│   ├── AddSubjectSheet.css      # add sheet styles (408 lines — over 300)
+│   ├── MonthSheet.jsx           # calendar bottom sheet, week jump
+│   ├── MonthSheet.css           # month sheet styles
+│   ├── SickDaySheet.jsx         # sick day checklist, cascade shift confirmation
+│   ├── SickDaySheet.css         # sick day sheet styles
+│   ├── DebugSheet.jsx           # PDF import log viewer
+│   ├── DebugSheet.css           # debug sheet styles
+│   ├── SettingsSheet.jsx        # RETIRED v0.22.6 — disconnected but kept on disk
+│   └── SettingsSheet.css        # RETIRED v0.22.6 — settings moved to shell SettingsTab
 └── constants/
-    ├── subjects.js              # SUBJECT_PRESETS array (~19 lines)
-    ├── days.js                  # DAY_NAMES, DAY_SHORT, date helpers (~46 lines)
-    ├── months.js                # MONTH_NAMES, getCalendarGrid (~18 lines)
-    ├── routes.js                # ROUTES object (~5 lines)
-    └── firestore.js             # Firestore path builder functions (~18 lines)
+    ├── subjects.js              # SUBJECT_PRESETS array
+    ├── days.js                  # DAY_NAMES, DAY_SHORT, date helpers, mondayWeekId
+    ├── months.js                # MONTH_NAMES, getCalendarGrid
+    ├── routes.js                # ROUTES object
+    └── firestore.js             # Firestore path builder functions
 
 ## Planner-specific layout decisions
 - Header is 3 rows: Row 1 (48px) = logo + brand + 4 icon buttons;
@@ -215,6 +224,30 @@ packages/dashboard/src/tools/planner/
 - All bottom sheets use slide-up animation from translateY(100%)
 - Each sheet has its own overlay class (not shared) to avoid CSS conflicts
 - safe-area-inset-bottom applied to all sheets for iPhone home bar
+
+## Mobile layout — base styles
+- Mobile-first. Content fills the full viewport width with 16px horizontal padding.
+- No `max-width: 480px` anywhere — removed in v0.22.8. Bottom sheets also use `max-width: 100%`.
+- `.planner-subjects` and `.rl-body` use a responsive grid
+  `repeat(auto-fill, minmax(300px, 1fr))` so subject cards / student cards
+  reflow to 2 columns on wide phones (Galaxy S25 Ultra landscape ~915px).
+- Bottom nav height: 56px base (iPhone SE / small phones below 400px).
+- Large phone scaling: `@media (min-width: 400px) and (max-width: 1023px)` — added in
+  v0.22.9 to give wide phones (Galaxy S25 Ultra 412px, Pixel 8 Pro etc.) a
+  native-app feel. Inside this band: bottom nav grows to 68px, nav icon 18→24px,
+  nav label 9→12px; planner header grows to ~140px; all sheet text inputs are
+  forced to 16px to suppress iOS Safari auto-zoom on focus. Desktop (≥1024px)
+  is explicitly unaffected — the query is bounded at 1023px max.
+- Three-tier responsive layout (small / medium / large phone with distinct
+  typography scales) is deferred to Phase 4.
+
+## Responsive breakpoints (canonical)
+- `<400px` — small phone base (iPhone SE, iPhone 13 mini). Compact nav 56px, base font sizes.
+- `400–1023px` — large phone (Galaxy S25 Ultra, Pixel 8 Pro, iPhone 15 Pro Max). Scaled-up fonts/spacing/nav, still mobile shell.
+- `≥1024px` — desktop (iPad Pro landscape, laptop, desktop). 200px fixed sidebar, shell content offset.
+- iPad portrait (~810px) currently falls into the large-phone band (mobile shell with bottom nav). Carry-over decision — see HANDOFF history.
+
+---
 
 ## Desktop layout (≥1024px) — all rules are additive media queries; mobile is UNCHANGED
 Desktop = shell sidebar at left + planner content column to the right.
@@ -254,14 +287,25 @@ Desktop = shell sidebar at left + planner content column to the right.
 ---
 
 ## File size rules — enforce strictly
-- Hard limit: 300 lines per file, no exceptions
-- Target: under 200 lines per file
+- Hard limit: 300 lines per source file (JSX / JS / CSS)
+- CLAUDE.md is explicitly exempt — it is a reference document, not a code file.
+  Keep it as long as it needs to be; the value is completeness, not brevity.
+- Target: under 200 lines per source file
 - One responsibility per file — if you need "and" to describe what
   a file does, split it
 - Components never contain business logic — extract to hooks/
 - Firebase calls never live in components — extract to firebase/
 - If a file approaches 250 lines, stop and split before continuing
 - Never combine multiple components in one file
+
+### CSS files currently over 300 lines (known, pending split)
+- packages/dashboard/src/tools/planner/components/AddSubjectSheet.css  (408)
+- packages/dashboard/src/tabs/SettingsTab.css                          (376)
+- packages/dashboard/src/tools/planner/components/PlannerLayout.css    (360)
+- packages/dashboard/src/tools/planner/components/UploadSheet.css      (333)
+- packages/dashboard/src/tabs/HomeTab.css                              (324)
+All five will be split in a dedicated session — do not add more rules
+to these files without splitting first.
 
 ---
 
@@ -323,32 +367,39 @@ Before closing, do both of these:
 4. Identify which files will be touched before writing any code
 
 ---
-## Tools status (v0.22.2)
-- shared         → ✅ Complete — tokens, fonts, Firebase init, auth hook
-- dashboard      → ✅ Complete — unified app shell; mobile bottom nav / desktop left sidebar; planner + reward-tracker integrated; HomeTab morning summary
-- planner        → ✅ Integrated — renders inside dashboard as PlannerTab at `packages/dashboard/src/tools/planner/`
-- reward-tracker → ✅ Integrated — renders inside dashboard as RewardsTab at `packages/dashboard/src/tools/reward-tracker/`
-- te-extractor   → ✅ Complete — vanilla HTML/CSS/JS, deployed at /te-extractor (external link from shell)
+## Tools status (v0.22.9)
+- shared            → ✅ Complete — tokens, fonts, Firebase init, auth hook
+- dashboard         → ✅ Complete — unified app shell at v0.22.9; mobile bottom nav (56/68px) / desktop 200px left sidebar at ≥1024px; 6 tabs including unified Settings; shared dark-mode + student state lifted to App.jsx
+- planner           → ✅ Complete — integrated into shell at `packages/dashboard/src/tools/planner/`; batch add (day pills + student pills), large done checkbox, desktop card grid, PDF import via Anthropic Netlify Function
+- reward-tracker    → ✅ Complete — integrated into shell at `packages/dashboard/src/tools/reward-tracker/`; dark mode, award/deduct/spend sheets, cash conversion (15 pts = $1.00)
+- te-extractor      → ✅ Complete at v0.20.4 — vanilla HTML/CSS/JS, deployed at /te-extractor, links out from shell (React rewrite deferred to Phase 3)
+- academic-records  → 🔒 Phase 2 — "Coming Soon" placeholder tab in shell
+- school-year / ND compliance → 🔒 Phase 3
 
 ## Dashboard — app shell architecture
 The dashboard is the unified app shell. Planner and reward tracker are
 integrated as tabs. Navigation is a bottom bar on mobile and a 200px
 fixed left sidebar on desktop (≥1024px).
 
-### Shell layout
-- `App.jsx` owns auth + tab state (`activeTab` string, default `'home'`) AND the lifted `plannerStudent` state (so the sidebar can show/change the active student when the Planner tab is visible).
-- `App.jsx` calls `useSettings(user?.uid, plannerStudent)` at the shell level and passes `students` + `subjectsByStudent` down to PlannerTab AND passes `students` + `activeStudent` + `onStudentChange` down to BottomNav.
-- After auth: renders `<div class="app-shell">` → `<div class="shell-content">` + `<BottomNav>`.
-- `.app-shell`: min-height 100vh, flex column.
-- `.shell-content`: flex 1, padding-bottom calc(56px + safe-area) to clear the mobile nav; on desktop `margin-left: 200px; padding-bottom: 0`.
-- `<BottomNav>` is `position: fixed; bottom: 0; z-index: 100` on mobile; on desktop it becomes `top: 0; left: 0; width: 200px; height: 100vh; flex-direction: column;` — a dark sidebar.
+### Shell layout — state lifted to App.jsx
+App.jsx is intentionally thin. It owns:
+- `activeTab` (string, default `'home'`) — current shell tab
+- `plannerStudent` (string, default `'Orion'`) — shared between PlannerTab and the sidebar student selector
+- `colorMode` + `toggleDarkMode` (via `useDarkMode`) — shared dark-mode state; SettingsTab toggles, every tab re-themes automatically through `<html data-mode>`
+- `students` + `subjectsByStudent` — from `useSettings(uid, plannerStudent)` at the shell level; passed down to PlannerTab (for AddSubjectSheet presets + Header) AND to BottomNav (for the desktop sidebar's Student section)
 
-### Bottom nav / sidebar tabs (in order)
-1. `home` → HomeTab (morning summary dashboard — today's date, student pills, 3 summary cards for lessons/Orion pts/Malachi pts, tappable lesson list, quick actions)
-2. `planner` → PlannerTab
-3. `rewards` → RewardsTab
-4. `te` → external: `window.location.href = '/te-extractor/'` (never migrates — vanilla JS tool)
-5. `academic` → AcademicRecordsTab (coming soon placeholder)
+After auth: renders `<div class="app-shell">` → `<div class="shell-content">` + `<BottomNav>`.
+- `.app-shell`: min-height 100vh, flex column
+- `.shell-content`: flex 1; padding-bottom `calc(56px + safe-area)` on mobile to clear the fixed bottom nav; `calc(68px + safe-area)` at ≥400px for the taller large-phone nav; `margin-left: 200px; padding-bottom: 0` at ≥1024px
+- `<BottomNav>` is `position: fixed; bottom: 0; z-index: 100` on mobile; at ≥1024px it flips to `top: 0; left: 0; width: 200px; height: 100vh; flex-direction: column;` — a dark sidebar
+
+### Bottom nav / sidebar tabs (in order — 6 tabs as of v0.22.6)
+1. `home` → HomeTab (morning summary dashboard — today's date, student pills, 3 summary cards for lessons/Orion pts/Malachi pts, tappable lesson list, quick actions). Icon: 🏠
+2. `planner` → PlannerTab. Icon: 📅
+3. `rewards` → RewardsTab. Icon: 🏅
+4. `te` → external full-page navigate: `window.location.href = '/te-extractor/'` (never migrates to React — vanilla JS tool). Icon: 📄
+5. `academic` → AcademicRecordsTab (Phase 2 placeholder). Icon: 🎓
+6. `settings` → SettingsTab (unified: dark mode, students, default subjects, clear cache, sign out). Icon: ⚙️
 
 ### Desktop sidebar spec
 - Width 200px, fixed left, full viewport height, `#22252e` background (hardcoded — never changes with dark-mode toggle, consistent with all header-like surfaces).
@@ -360,44 +411,53 @@ fixed left sidebar on desktop (≥1024px).
 ### File structure — dashboard shell
 packages/dashboard/src/
 ├── main.jsx                 # app entry, seeds color-mode, mounts App
-├── App.jsx                  # auth + tab state + lifted plannerStudent + useSettings
-├── App.css                  # resets + .app-shell + .shell-content + desktop shell overrides
+├── App.jsx                  # auth + activeTab + plannerStudent + colorMode + useSettings
+├── App.css                  # resets + .app-shell + .shell-content + desktop shell overrides + 400–1023 shell offset
 ├── components/
-│   ├── BottomNav.jsx        # 5-tab persistent nav (bottom bar / desktop sidebar); brand + student selector + footer desktop-only
-│   ├── BottomNav.css        # nav styles
-│   ├── Header.jsx           # old dashboard header — kept but currently unused
-│   ├── Header.css           # header styles
-│   ├── Dashboard.jsx        # old tool card wrapper — kept but currently unused
-│   ├── Dashboard.css        # old styles — kept but currently unused
-│   ├── ToolCard.jsx         # tool card — still used by HomeTab
-│   ├── ToolCard.css         # card styles
+│   ├── BottomNav.jsx        # 6-tab persistent nav (bottom bar / desktop sidebar); brand + student selector + footer desktop-only
+│   ├── BottomNav.css        # nav styles (mobile bottom bar, 400–1023 taller scaling, ≥1024 sidebar)
 │   ├── SignIn.jsx           # Google sign-in screen
-│   └── SignIn.css
+│   ├── SignIn.css
+│   ├── ToolCard.jsx         # DEAD — legacy tool card, no longer referenced (HomeTab rewrote its grid)
+│   ├── ToolCard.css         # DEAD
+│   ├── Header.jsx           # DEAD — old dashboard header, kept on disk, not imported
+│   ├── Header.css           # DEAD
+│   ├── Dashboard.jsx        # DEAD — old tool-card wrapper
+│   └── Dashboard.css        # DEAD
 ├── tabs/
-│   ├── HomeTab.jsx          # morning summary dashboard + brand header (dark mode toggle, sign-out)
-│   ├── HomeTab.css          # home tab styles
+│   ├── HomeTab.jsx          # morning summary dashboard + mobile brand strip (hidden on desktop)
+│   ├── HomeTab.css          # home tab styles (324 lines — over 300 limit)
 │   ├── PlannerTab.jsx       # wires planner hooks + lifted student props into PlannerLayout
-│   ├── RewardsTab.jsx       # wires reward tracker into RewardLayout
-│   ├── AcademicRecordsTab.jsx # coming-soon placeholder
-│   └── PlaceholderTab.css   # shared styles for coming-soon tabs
+│   ├── RewardsTab.jsx       # wires reward tracker hooks into RewardLayout
+│   ├── AcademicRecordsTab.jsx # Coming Soon placeholder (Phase 2)
+│   ├── PlaceholderTab.css   # shared styles for coming-soon tabs
+│   ├── SettingsTab.jsx      # unified settings: Appearance / Students / Planner / App / Sign Out / version
+│   └── SettingsTab.css      # settings tab styles (376 lines — over 300 limit)
 ├── hooks/
-│   ├── useDarkMode.js       # dark mode toggle (color-mode localStorage key)
+│   ├── useDarkMode.js       # dark mode toggle (color-mode localStorage key, html data-mode)
 │   └── useHomeSummary.js    # live Firestore — students, today's subjects for active student, both students' points
 ├── constants/
-│   ├── tools.js             # TOOLS array — still drives HomeTab tool cards
+│   ├── tools.js             # TOOLS array (legacy, mostly unused)
 │   └── school.js            # school name constants
 └── tools/
     ├── planner/             # full planner tool (components, hooks, firebase, constants)
     └── reward-tracker/      # full reward tracker tool (components, hooks, firebase)
 
+Dead files (ToolCard/Header/Dashboard) will be deleted in a cleanup session.
+
 ### Bottom nav design rules
 - Background: always `#22252e` — never changes in dark mode (same as all headers)
-- Height: 56px fixed
+- 6 equal-width tabs, `flex: 1`, `min-width: 0` so long labels (e.g. "TE Extractor") ellipsis on narrow phones
+- Heights (responsive):
+  - base (<400px):       56px; icon 18px; label 9px; tab min-height 56px
+  - ≥400px and ≤1023px: 68px; icon 24px; label 12px; tab min-height 68px
+  - ≥1024px:             collapses to 200px left sidebar (height: 100vh)
 - Active tab: icon + label `#e8c97a`, icon pill `rgba(201,168,76,0.15)` background
 - Inactive tab: `rgba(255,255,255,0.45)`
-- Icon font size: 18px; label font size: 9px
 - No border-top (dark background is anchor enough)
 - Safe area inset bottom for iPhone home bar
+- The large-phone scaling media query is bounded `(min-width:400px) and (max-width:1023px)`
+  so it does NOT leak into the desktop sidebar layout
 
 ### Migration — completed
 - Planner: embedded inside PlannerTab — /planner/ separate build removed.
@@ -476,6 +536,33 @@ Phase 2 (do not build yet):
   - Copy last week as template
   - Export week as PDF
 
+---
+
+## Phase roadmap — project-wide
+### Phase 1 — ✅ COMPLETE at v0.22.9
+  - Unified app shell with 6-tab bottom nav (mobile) + 200px left sidebar (≥1024px desktop)
+  - Planner: per-day implicit subjects, PDF import, sick day cascade, month picker,
+    batch add (day pills + student pills), large done checkbox, All Day Event
+  - Reward Tracker: award / deduct / spend sheets, log, cash conversion (15 pts = $1)
+  - HomeTab: morning summary with lessons + points for both students
+  - Unified Settings tab (dark mode, students, default subjects, clear cache, sign out)
+  - Custom domain `homeschool.grasphislove.com`
+  - Responsive: 400–1023 large-phone scaling band, 1024 desktop breakpoint
+  - TE Extractor: vanilla JS, served at /te-extractor/, links out from shell
+
+### Phase 2 — 🔒 NOT STARTED
+  - Academic Records tab (transcripts, cumulative view)
+  - Planner Phase 2 items (auto-roll flagged lessons, week history, copy last week, export PDF)
+
+### Phase 3 — 🔒 NOT STARTED
+  - School Year + ND compliance tracking
+  - TE Extractor React rewrite (migrate into shell, keep same Anthropic API exception)
+
+### Phase 4 — 🔒 NOT STARTED
+  - Three-tier responsive mobile typography (distinct scales for small / medium / large phone)
+  - Remove all hardcoded "Iron & Light Johnson Academy" references — make the shell brand-agnostic for future families
+  - 50-state compliance database (expand beyond ND)
+
 ## TE Extractor — architecture notes
 - Vanilla HTML/CSS/JS — Vite build step added for VITE_ env var injection only
 - Lives at packages/te-extractor/public/; Vite builds to ../../dist/te-extractor/
@@ -508,24 +595,37 @@ Fields: { fileName, lessons, html, previewText (200 char), createdAt (serverTime
 
 ## Key decisions — do not revisit without Rob's explicit instruction
 - Monorepo, single Netlify site — not GitHub Pages
+- `homeschool.grasphislove.com` is the primary domain (custom domain, live 2026-04-15).
+  `ironandlight.netlify.app` remains as the Netlify-default fallback.
 - Single Firebase project shared across all tools
 - Google sign-in only — single family account
 - Anthropic API key server-side only — never in client bundle (TE Extractor is the sole exception — family-internal tool, see architecture notes)
-- Mobile-first, max-width 480px on all tools
+- Mobile-first, content fills viewport width with 16px horizontal padding. No `max-width: 480px` on mobile (removed v0.22.8).
+- Desktop breakpoint is `1024px` (raised from 768px in v0.22.7 for Galaxy S25 Ultra compatibility — do not lower without a new reason).
+- Large-phone scaling band is `400px–1023px` — bounded so it never touches the desktop sidebar.
 - Lexend font only — no serif fonts in the UI
 - Ink & Gold color system only — no new tokens
 - No grade tracking in any tool
 - @dnd-kit/core for drag-and-drop — never hand-roll
 - Exact dependency versions — no ^ or ~ in package.json
+- TE Extractor links out from the shell via `window.location.href` — a React rewrite is deferred to Phase 3 (do not migrate opportunistically).
+- Three-tier mobile responsive typography (distinct scales for small / medium / large phone) is deferred to Phase 4.
+- CLAUDE.md is explicitly exempt from the 300-line file-size rule.
+- Unified Settings tab owns all app settings — planner's `SettingsSheet` was retired in v0.22.6 (disconnected but kept on disk pending deletion).
+- Planner student state is lifted to `App.jsx` so the desktop sidebar Student selector shares it with the Planner tab — do not re-scope to PlannerTab.
 
 ### Dark mode token rule
 Never hardcode colors that need to work in both light and dark. Always
 use CSS variables (`var(--text-primary)`, `var(--text-secondary)`, `var(--bg-card)`, etc.).
-Exceptions where hardcoded literals ARE correct:
-- Header / sidebar / bottom nav background is always `#22252e` regardless of mode (the brand anchor).
+
+Hardcoded literals are ONLY correct on brand chrome:
+- Header / sidebar / bottom nav / sheet-header backgrounds are always `#22252e` regardless of mode — the brand anchor.
 - Active-state gold accents (`#e8c97a`, `#c9a84c`) on the dark chrome stay the same in both modes.
-- Subject-like UPPERCASE labels on cards → use `var(--text-primary)` not `var(--ink)` (`--ink` is near-black in light, near-black in dark — unreadable on dark card bg).
-- Section headings and sheet labels → use `var(--text-secondary)` not `var(--text-muted)` (muted is too faint for small-caps headings in dark mode).
+
+Token choice (tricky spots):
+- Card body text (subject names, lesson text, titles) → `var(--text-primary)` NOT `var(--ink)`. `--ink` is near-black in both modes (it re-tints toward card-chrome for ink backgrounds) and becomes unreadable on dark card backgrounds.
+- Section headings, sheet labels, small-caps dividers → `var(--text-secondary)` NOT `var(--text-muted)`. `--text-muted` is too faint for small-caps headings in dark mode.
+
 When a hardcoded color must only apply in one mode, scope with `[data-mode="dark"]` rules.
 
 ---
