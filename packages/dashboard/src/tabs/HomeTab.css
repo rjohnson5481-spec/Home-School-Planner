@@ -62,9 +62,8 @@
 
 .home-header-btn:hover { background: rgba(255, 255, 255, 0.14); }
 
-/* ── Inner content — max-width + padding ── */
+/* ── Inner content — full-width with 16px padding ── */
 .home-content {
-  max-width: 480px;
   width: 100%;
   margin: 0 auto;
   padding: 20px 16px 24px;

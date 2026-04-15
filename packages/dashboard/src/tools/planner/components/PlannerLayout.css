@@ -5,9 +5,6 @@
 /* Pushes body content below the 132px fixed header (48px row 1 + 52px row 2 + 32px row 3). */
 .planner-body {
   margin-top: 132px;
-  max-width: 480px;
-  margin-left: auto;
-  margin-right: auto;
 }
 
 .planner-main {
@@ -26,10 +23,10 @@
   text-align: center;
 }
 
-/* ── Subject card list ── */
+/* ── Subject card list — responsive grid; reflows to multiple columns on wider phones ── */
 .planner-subjects {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 12px;
   margin-bottom: 16px;
 }
@@ -136,8 +133,6 @@
   bottom: 56px;
   left: 0;
   right: 0;
-  max-width: 480px;
-  margin: 0 auto;
   background: var(--bg-card);
   border-top: 1px solid var(--border);
   box-shadow: 0 -2px 12px rgba(34, 37, 46, .07);
@@ -186,7 +181,7 @@
 
 /* ── Undo Sick Day confirmation sheet ── */
 .undo-sick-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.4); z-index: 200; display: flex; align-items: flex-end; justify-content: center; }
-.undo-sick-sheet { width: 100%; max-width: 480px; background: var(--bg-base); border-radius: 20px 20px 0 0; padding-bottom: env(safe-area-inset-bottom, 16px); animation: undo-sick-up 0.25s ease; }
+.undo-sick-sheet { width: 100%; max-width: 100%; background: var(--bg-base); border-radius: 20px 20px 0 0; padding-bottom: env(safe-area-inset-bottom, 16px); animation: undo-sick-up 0.25s ease; }
 
 @keyframes undo-sick-up {
   from { transform: translateY(100%); }

@@ -12,7 +12,7 @@
 /* ── Sheet panel ── */
 .add-sheet {
   width: 100%;
-  max-width: 480px;
+  max-width: 100%;
   background: var(--bg-base);
   border-radius: 20px 20px 0 0;
   padding-bottom: env(safe-area-inset-bottom, 16px);

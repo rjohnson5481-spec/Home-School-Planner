@@ -29,6 +29,7 @@
 .bn-tab {
   flex: 1;
   min-width: 0;           /* allow ellipsis in narrow 6-tab rows */
+  min-height: 56px;       /* adequate tap target on any screen size */
   display: flex;
   flex-direction: column;
   align-items: center;
