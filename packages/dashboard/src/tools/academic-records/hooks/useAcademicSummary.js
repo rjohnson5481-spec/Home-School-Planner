@@ -103,19 +103,29 @@ export function useAcademicSummary(uid, student, schoolYears, enrollments, cours
       .finally(() => setLoading(false));
   }, [uid]);
 
-  // ── Attendance derived from year + sick days ───────────────────────────
-  // attended = total school days from year start through "today or year end" minus sick days in that range.
+  // ── Attendance derived from year + sick days + breaks ───────────────────
+  // schoolDays = weekdays from year start through today (or endDate if past).
+  // breakDays  = weekdays within any break period up to the same cutoff.
+  // attended   = schoolDays − breakDays − sick.
   const attendanceDays = useMemo(() => {
     const start = activeSchoolYear?.startDate;
-    if (!start) return { attended: 0, sick: 0, total: 0, required: REQUIRED_DAYS };
+    if (!start) return { attended: 0, sick: 0, breakDays: 0, schoolDays: 0, required: REQUIRED_DAYS };
     const today = todayIsoDate();
     const end = (activeSchoolYear?.endDate && today > activeSchoolYear.endDate)
       ? activeSchoolYear.endDate
       : today;
-    const total = countSchoolDays(start, end);
-    const sick  = sickDates.filter(d => d >= start && d <= end).length;
-    const attended = Math.max(0, total - sick);
-    return { attended, sick, total, required: REQUIRED_DAYS };
+    const schoolDays = countSchoolDays(start, end);
+    const sick = sickDates.filter(d => d >= start && d <= end).length;
+    // Count weekdays within each break that overlap the start–end window.
+    let breakDays = 0;
+    for (const b of (activeSchoolYear?.breaks ?? [])) {
+      if (!b.startDate || !b.endDate) continue;
+      const bStart = b.startDate < start ? start : b.startDate;
+      const bEnd = b.endDate > end ? end : b.endDate;
+      if (bStart <= bEnd) breakDays += countSchoolDays(bStart, bEnd);
+    }
+    const attended = Math.max(0, schoolDays - breakDays - sick);
+    return { attended, sick, breakDays, schoolDays, required: REQUIRED_DAYS };
   }, [activeSchoolYear, sickDates]);
 
   return {

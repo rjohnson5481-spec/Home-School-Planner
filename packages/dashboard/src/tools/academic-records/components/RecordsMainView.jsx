@@ -159,7 +159,10 @@ export default function RecordsMainView({
         <div className="ar-attendance-detail">
           <span>Attended: <strong>{attendanceDays.attended}</strong></span>
           <span>Sick: <strong>{attendanceDays.sick}</strong></span>
-          <span>School days: <strong>{attendanceDays.total}</strong></span>
+          {(attendanceDays.breakDays ?? 0) > 0 && (
+            <span>Breaks: <strong>{attendanceDays.breakDays}</strong></span>
+          )}
+          <span>School days: <strong>{attendanceDays.schoolDays}</strong></span>
         </div>
         <p className="ar-attendance-note">Sick days pulled automatically from Planner</p>
       </div>
