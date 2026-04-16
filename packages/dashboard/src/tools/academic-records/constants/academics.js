@@ -2,6 +2,7 @@
 // Data model:
 //   /users/{uid}/schoolYears/{yearId}                       → { label, startDate, endDate }
 //   /users/{uid}/schoolYears/{yearId}/quarters/{quarterId}  → { label, startDate, endDate }
+//   /users/{uid}/schoolYears/{yearId}/breaks/{breakId}      → { label, startDate, endDate }
 //   /users/{uid}/courses/{courseId}                         → { name, curriculum, gradingType }
 //   /users/{uid}/enrollments/{enrollmentId}                 → { courseId, student, yearId, notes, syncPlanner }
 //   /users/{uid}/grades/{gradeId}                           → { enrollmentId, quarterId, grade }
@@ -20,6 +21,13 @@ export const quartersCol = (uid, yearId) =>
 
 export const quarterDoc = (uid, yearId, quarterId) =>
   `users/${uid}/schoolYears/${yearId}/quarters/${quarterId}`;
+
+// ── Breaks (subcollection of a school year) ───────────────────────────────
+export const breaksCol = (uid, yearId) =>
+  `users/${uid}/schoolYears/${yearId}/breaks`;
+
+export const breakDoc = (uid, yearId, breakId) =>
+  `users/${uid}/schoolYears/${yearId}/breaks/${breakId}`;
 
 // ── Courses ───────────────────────────────────────────────────────────────
 export const coursesCol = (uid) =>

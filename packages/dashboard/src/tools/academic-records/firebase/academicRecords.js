@@ -15,6 +15,7 @@ import { db } from '@homeschool/shared';
 import {
   schoolYearDoc,
   quartersCol, quarterDoc,
+  breaksCol, breakDoc,
   coursesCol, courseDoc,
   enrollmentsCol, enrollmentDoc,
   gradesCol, gradeDoc,
@@ -63,6 +64,27 @@ export function saveQuarter(uid, yearId, quarterId, data) {
 // Deletes one quarter.
 export function deleteQuarter(uid, yearId, quarterId) {
   return deleteDoc(doc(db, quarterDoc(uid, yearId, quarterId)));
+}
+
+// ─── Breaks ──────────────────────────────────────────────────────────────
+
+// Reads all breaks for a school year.
+// Returns: [{ id, label, startDate, endDate }, ...] sorted by startDate ascending.
+export async function getBreaks(uid, yearId) {
+  const snap = await getDocs(collection(db, breaksCol(uid, yearId)));
+  const rows = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  return rows.sort((a, b) => (a.startDate ?? '').localeCompare(b.startDate ?? ''));
+}
+
+// Writes a break. data shape: { label, startDate, endDate }
+export function saveBreak(uid, yearId, breakId, data) {
+  const ref = doc(db, breakDoc(uid, yearId, breakId));
+  return setDoc(ref, { ...data, updatedAt: serverTimestamp() }, { merge: true });
+}
+
+// Deletes one break.
+export function deleteBreak(uid, yearId, breakId) {
+  return deleteDoc(doc(db, breakDoc(uid, yearId, breakId)));
 }
 
 // ─── Courses ──────────────────────────────────────────────────────────────
