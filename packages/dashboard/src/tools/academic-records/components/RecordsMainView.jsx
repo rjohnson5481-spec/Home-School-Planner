@@ -12,7 +12,8 @@ import { GRADING_TYPE_LETTER } from '../constants/academics.js';
 //   summary               — output of useAcademicSummary
 //   courses               — Array<{ id, name, curriculum, gradingType }>
 //   grades                — Array<{ id, enrollmentId, quarterId, grade }> from useGrades
-//   onCatalogOpen, onEnrollmentsOpen, onSchoolYearOpen, onEnterGrades — () => void
+//   onCatalogOpen, onEnrollmentsOpen, onSchoolYearOpen, onEnterGrades, onCalendarImport — () => void
+//   onAttendanceDetail — () => void, opens the attendance detail sheet
 
 const STUDENTS = ['Orion', 'Malachi'];
 const DOT_COLORS = [
@@ -37,15 +38,13 @@ export default function RecordsMainView({
   selectedQuarterId, setSelectedQuarterId,
   summary, courses, grades,
   onCatalogOpen, onEnrollmentsOpen, onSchoolYearOpen, onEnterGrades, onCalendarImport,
+  onAttendanceDetail,
 }) {
   const { activeSchoolYear, studentEnrollments, courseCount, attendanceDays } = summary;
   const today      = todayStr();
   const courseById = useMemo(() => new Map((courses ?? []).map(c => [c.id, c])), [courses]);
   const yearStart  = activeSchoolYear?.label?.split(/[–-]/)[0]?.trim() ?? '—';
   const yearLabel  = activeSchoolYear?.label ?? 'not set';
-  const attendancePct = attendanceDays.required > 0
-    ? Math.min(100, Math.round((attendanceDays.attended / attendanceDays.required) * 100))
-    : 0;
 
   return (
     <>
@@ -82,10 +81,11 @@ export default function RecordsMainView({
       )}
 
       <div className="ar-stats-row">
-        <div className="ar-stat-card gold">
+        <div className="ar-stat-card gold ar-stat-card--tappable" onClick={onAttendanceDetail} role="button" tabIndex={0}>
           <div className="ar-stat-label">Attendance</div>
           <div className="ar-stat-value">{summary.loading ? '—' : attendanceDays.attended}</div>
           <div className="ar-stat-sub">of 175 days required</div>
+          <div className="ar-stat-detail-hint">View details ›</div>
         </div>
         <div className="ar-stat-card">
           <div className="ar-stat-label">Courses</div>
@@ -141,30 +141,6 @@ export default function RecordsMainView({
         <button className="ar-action-btn disabled" disabled>
           <span>📄 Generate Report</span><span className="soon">Soon</span>
         </button>
-      </div>
-
-      <div className="ar-attendance-card">
-        <p className="ar-section-label" style={{ marginBottom: 0 }}>
-          Attendance — {activeSchoolYear?.label ?? '—'}
-        </p>
-        <div className="ar-attendance-num">{attendanceDays.attended}</div>
-        <p className="ar-attendance-sub">days completed</p>
-        <div className="ar-attendance-bar-track">
-          <div className="ar-attendance-bar-fill" style={{ width: `${attendancePct}%` }} />
-        </div>
-        <div className="ar-attendance-labels">
-          <span>{attendancePct}% complete</span>
-          <span>175 days required (ND)</span>
-        </div>
-        <div className="ar-attendance-detail">
-          <span>Attended: <strong>{attendanceDays.attended}</strong></span>
-          <span>Sick: <strong>{attendanceDays.sick}</strong></span>
-          {(attendanceDays.breakDays ?? 0) > 0 && (
-            <span>Breaks: <strong>{attendanceDays.breakDays}</strong></span>
-          )}
-          <span>School days: <strong>{attendanceDays.schoolDays}</strong></span>
-        </div>
-        <p className="ar-attendance-note">Sick days pulled automatically from Planner</p>
       </div>
 
       <p className="ar-section-label">Quick Actions</p>

@@ -87,6 +87,9 @@
   background: linear-gradient(135deg, var(--bg-card) 60%, rgba(201, 168, 76, 0.06));
 }
 .ar-stat-card.gold .ar-stat-value { color: var(--gold); }
+.ar-stat-card--tappable { cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s; }
+.ar-stat-card--tappable:hover { border-color: var(--gold-light); box-shadow: 0 4px 16px rgba(201,168,76,0.12); }
+.ar-stat-detail-hint { font-size: 10px; color: var(--gold); margin-top: 6px; }
 
 /* ── Section label with trailing rule ── */
 .ar-section-label {
