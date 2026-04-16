@@ -64,6 +64,13 @@ export const savedReportsCol = (uid) =>
 export const savedReportDoc = (uid, reportId) =>
   `users/${uid}/savedReports/${reportId}`;
 
+// ── Activities (extracurricular, per student) ─────────────────────────────
+export const activitiesCol = (uid) =>
+  `users/${uid}/activities`;
+
+export const activityDoc = (uid, activityId) =>
+  `users/${uid}/activities/${activityId}`;
+
 // ── Grading type constants (mirror the keys in scales.js GRADING_TYPES) ───
 export const GRADING_TYPE_LETTER = 'letter';
 export const GRADING_TYPE_ESNU   = 'esnu';
