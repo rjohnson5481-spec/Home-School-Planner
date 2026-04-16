@@ -14,6 +14,7 @@ import AddEditEnrollmentSheet from '../tools/academic-records/components/AddEdit
 import SchoolYearSheet        from '../tools/academic-records/components/SchoolYearSheet.jsx';
 import AddEditSchoolYearSheet from '../tools/academic-records/components/AddEditSchoolYearSheet.jsx';
 import CalendarImportSheet    from '../tools/academic-records/components/CalendarImportSheet.jsx';
+import AttendanceDetailSheet  from '../tools/academic-records/components/AttendanceDetailSheet.jsx';
 import './AcademicRecordsTab.css';
 
 // Phase 2 entry point. Tab-level wiring lives here:
@@ -71,6 +72,9 @@ export default function AcademicRecordsTab() {
 
   // Sheet state — calendar import
   const [calendarImportOpen, setCalendarImportOpen] = useState(false);
+
+  // Sheet state — attendance detail
+  const [attendanceDetailOpen, setAttendanceDetailOpen] = useState(false);
 
   // ─── Course handlers ───
   function closeCatalog()       { setCatalogSheetOpen(false); setAddEditSheetOpen(false); setEditingCourse(null); }
@@ -187,6 +191,7 @@ export default function AcademicRecordsTab() {
         onSchoolYearOpen={() => setSchoolYearSheetOpen(true)}
         onEnterGrades={() => setGradeEntrySheetOpen(true)}
         onCalendarImport={summary.activeSchoolYear ? () => setCalendarImportOpen(true) : null}
+        onAttendanceDetail={() => setAttendanceDetailOpen(true)}
       />
 
       <CourseCatalogSheet
@@ -234,6 +239,12 @@ export default function AcademicRecordsTab() {
         onImport={handleCalendarImport}
         yearLabel={summary.activeSchoolYear?.label}
         existingBreaks={summary.activeSchoolYear?.breaks ?? []}
+      />
+      <AttendanceDetailSheet
+        open={attendanceDetailOpen} onClose={() => setAttendanceDetailOpen(false)}
+        attendanceDays={summary.attendanceDays}
+        schoolYearLabel={summary.activeSchoolYear?.label ?? '—'}
+        student={selectedStudent}
       />
 
     </div>
