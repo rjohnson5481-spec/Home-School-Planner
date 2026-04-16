@@ -38,7 +38,7 @@ export default function RecordsMainView({
   selectedQuarterId, setSelectedQuarterId,
   summary, courses, grades,
   onCatalogOpen, onEnrollmentsOpen, onSchoolYearOpen, onEnterGrades, onCalendarImport,
-  onAttendanceDetail,
+  onAttendanceDetail, onGenerateReport,
 }) {
   const { activeSchoolYear, studentEnrollments, courseCount, attendanceDays } = summary;
   const today      = todayStr();
@@ -138,8 +138,8 @@ export default function RecordsMainView({
         <button className="ar-action-btn" onClick={onEnterGrades}>
           <span>✏️ Enter Grades</span><span>›</span>
         </button>
-        <button className="ar-action-btn disabled" disabled>
-          <span>📄 Generate Report</span><span className="soon">Soon</span>
+        <button className="ar-action-btn" onClick={onGenerateReport}>
+          <span>📄 Generate Report</span><span>›</span>
         </button>
       </div>
 
@@ -164,8 +164,8 @@ export default function RecordsMainView({
         <button className="ar-action-btn" onClick={onSchoolYearOpen}>
           <span>🗓️ Manage School Year &amp; Quarters</span><span>›</span>
         </button>
-        <button className="ar-action-btn disabled" disabled>
-          <span>📄 Generate Report Card</span><span className="soon">Soon</span>
+        <button className="ar-action-btn" onClick={onGenerateReport}>
+          <span>📄 Generate Report Card</span><span>›</span>
         </button>
       </div>
     </>
