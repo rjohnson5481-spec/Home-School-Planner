@@ -20,18 +20,10 @@
   margin: 0;
   line-height: 1.1;
 }
-.ar-subtitle {
-  font-size: 12px;
-  color: var(--text-muted);
-  margin: 2px 0 0;
-}
+.ar-subtitle { font-size: 12px; color: var(--text-muted); margin: 2px 0 0; }
 
 /* ── Student selector pills ── */
-.ar-student-row {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 20px;
-}
+.ar-student-row { display: flex; gap: 8px; margin-bottom: 20px; }
 .ar-student-pill {
   padding: 6px 16px;
   border-radius: 20px;
@@ -44,19 +36,10 @@
   font-family: inherit;
   transition: background 0.15s, color 0.15s, border-color 0.15s;
 }
-.ar-student-pill.active {
-  background: var(--ink);
-  color: #e8c97a;
-  border-color: var(--ink);
-}
+.ar-student-pill.active { background: var(--ink); color: #e8c97a; border-color: var(--ink); }
 
 /* ── Quarter pills ── */
-.ar-quarter-row {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-  margin-bottom: 20px;
-}
+.ar-quarter-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 20px; }
 .ar-quarter-pill {
   padding: 4px 12px;
   border-radius: 12px;
@@ -97,17 +80,8 @@
   color: var(--text-muted);
   margin-bottom: 6px;
 }
-.ar-stat-value {
-  font-size: 26px;
-  font-weight: 700;
-  color: var(--text-primary);
-  line-height: 1;
-}
-.ar-stat-sub {
-  font-size: 11px;
-  color: var(--text-muted);
-  margin-top: 4px;
-}
+.ar-stat-value { font-size: 26px; font-weight: 700; color: var(--text-primary); line-height: 1; }
+.ar-stat-sub   { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
 .ar-stat-card.gold {
   border-color: var(--gold);
   background: linear-gradient(135deg, var(--bg-card) 60%, rgba(201, 168, 76, 0.06));
@@ -126,12 +100,7 @@
   gap: 10px;
   margin-bottom: 12px;
 }
-.ar-section-label::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: var(--border);
-}
+.ar-section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 
 /* ── Grade list ── */
 .ar-grade-card {
@@ -149,24 +118,10 @@
   gap: 12px;
 }
 .ar-grade-row:last-child { border-bottom: none; }
-.ar-grade-empty {
-  padding: 24px 16px;
-  text-align: center;
-  font-size: 13px;
-  color: var(--text-muted);
-}
-.ar-course-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
+.ar-grade-empty { padding: 24px 16px; text-align: center; font-size: 13px; color: var(--text-muted); }
+.ar-course-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
 .ar-course-info { flex: 1; min-width: 0; }
-.ar-course-name {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-primary);
-}
+.ar-course-name { font-size: 14px; font-weight: 600; color: var(--text-primary); }
 .ar-course-meta {
   font-size: 11px;
   color: var(--text-muted);
@@ -176,17 +131,8 @@
   gap: 6px;
   flex-wrap: wrap;
 }
-.ar-grade-value {
-  font-size: 18px;
-  font-weight: 700;
-  min-width: 40px;
-  text-align: right;
-}
-.ar-grade-value.pending {
-  font-size: 12px;
-  font-weight: 400;
-  color: var(--text-muted);
-}
+.ar-grade-value { font-size: 18px; font-weight: 700; min-width: 40px; text-align: right; }
+.ar-grade-value.pending { font-size: 12px; font-weight: 400; color: var(--text-muted); }
 .ar-grade-value.letter-a { color: #1565c0; }
 .ar-grade-value.letter-b { color: #2e7d32; }
 .ar-grade-value.letter-c { color: #e65100; }
@@ -198,11 +144,7 @@
 .ar-grade-value.esnu-u   { color: var(--red); }
 
 /* ── Action row (Enter Grades / Generate Report) ── */
-.ar-action-row {
-  display: flex;
-  gap: 8px;
-  margin-top: 16px;
-}
+.ar-action-row { display: flex; gap: 8px; margin-top: 16px; }
 
 /* ── Attendance card ── */
 .ar-attendance-card {
@@ -272,18 +214,10 @@
   font-size: 10px;
   font-weight: 600;
 }
-[data-mode="dark"] .ar-badge-esnu {
-  color: #82b1ff;
-  background: rgba(130, 177, 255, 0.12);
-}
+[data-mode="dark"] .ar-badge-esnu { color: #82b1ff; background: rgba(130, 177, 255, 0.12); }
 
 /* ── Quick actions list ── */
-.ar-quick-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-bottom: 24px;
-}
+.ar-quick-actions { display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px; }
 .ar-action-btn {
   display: flex;
   align-items: center;
@@ -303,12 +237,7 @@
 }
 .ar-action-btn:hover:not(.disabled) { background: var(--bg-card-hover); }
 .ar-action-btn.disabled { opacity: 0.45; cursor: default; }
-.ar-action-btn .soon {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--gold);
-  letter-spacing: 0.06em;
-}
+.ar-action-btn .soon { font-size: 11px; font-weight: 600; color: var(--gold); letter-spacing: 0.06em; }
 
 /* ── Large phone (400–1023px) — scaled up for wide phones ── */
 @media (min-width: 400px) and (max-width: 1023px) {
