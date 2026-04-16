@@ -45,6 +45,7 @@ export function saveSchoolYear(uid, yearId, data) {
 // NOTE: does NOT cascade — quarters subcollection must be cleaned up separately
 // by the caller (iterate getQuarters → deleteQuarter).
 export function deleteSchoolYear(uid, yearId) {
+  console.warn('deleteSchoolYear: orphaned quarters and breaks for yearId', yearId, '— clean up subcollections manually in Firebase console');
   return deleteDoc(doc(db, schoolYearDoc(uid, yearId)));
 }
 
@@ -120,6 +121,7 @@ export async function addCourse(uid, data) {
 // NOTE: does NOT cascade — enrollments referencing this courseId must be cleaned
 // up separately by the caller.
 export function deleteCourse(uid, courseId) {
+  console.warn('deleteCourse: orphaned enrollments for courseId', courseId, '— clean up /users/{uid}/enrollments where courseId matches');
   return deleteDoc(doc(db, courseDoc(uid, courseId)));
 }
 
@@ -159,6 +161,7 @@ export async function addEnrollment(uid, data) {
 // NOTE: does NOT cascade — grades referencing this enrollmentId must be cleaned
 // up separately by the caller.
 export function deleteEnrollment(uid, enrollmentId) {
+  console.warn('deleteEnrollment: orphaned grades for enrollmentId', enrollmentId, '— clean up /users/{uid}/grades where enrollmentId matches');
   return deleteDoc(doc(db, enrollmentDoc(uid, enrollmentId)));
 }
 
