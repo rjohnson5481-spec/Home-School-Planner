@@ -50,6 +50,13 @@ export const gradesCol = (uid) =>
 export const gradeDoc = (uid, gradeId) =>
   `users/${uid}/grades/${gradeId}`;
 
+// ── Report notes (one per student × quarter) ─────────────────────────────
+export const reportNotesCol = (uid) =>
+  `users/${uid}/reportNotes`;
+
+export const reportNoteDoc = (uid, noteId) =>
+  `users/${uid}/reportNotes/${noteId}`;
+
 // ── Grading type constants (mirror the keys in scales.js GRADING_TYPES) ───
 export const GRADING_TYPE_LETTER = 'letter';
 export const GRADING_TYPE_ESNU   = 'esnu';
