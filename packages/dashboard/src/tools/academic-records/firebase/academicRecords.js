@@ -20,6 +20,7 @@ import {
   enrollmentsCol, enrollmentDoc,
   gradesCol, gradeDoc,
   reportNotesCol, reportNoteDoc,
+  savedReportsCol, savedReportDoc,
 } from '../constants/academics.js';
 
 // ─── School Years ─────────────────────────────────────────────────────────
@@ -240,4 +241,27 @@ export async function addReportNote(uid, data) {
     createdAt: serverTimestamp(),
   });
   return ref.id;
+}
+
+// ─── Saved Reports ───────────────────────────────────────────────────────
+
+// Reads all saved report card snapshots for this user, newest first.
+export async function getSavedReports(uid) {
+  const snap = await getDocs(collection(db, savedReportsCol(uid)));
+  const rows = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  return rows.sort((a, b) => (b.generatedAt?.toMillis?.() ?? 0) - (a.generatedAt?.toMillis?.() ?? 0));
+}
+
+// Saves a new report card snapshot. Returns new document id.
+export async function saveSavedReport(uid, data) {
+  const ref = await addDoc(collection(db, savedReportsCol(uid)), {
+    ...data,
+    generatedAt: serverTimestamp(),
+  });
+  return ref.id;
+}
+
+// Deletes a saved report card.
+export function deleteSavedReport(uid, reportId) {
+  return deleteDoc(doc(db, savedReportDoc(uid, reportId)));
 }

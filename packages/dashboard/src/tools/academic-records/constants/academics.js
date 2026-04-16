@@ -57,6 +57,13 @@ export const reportNotesCol = (uid) =>
 export const reportNoteDoc = (uid, noteId) =>
   `users/${uid}/reportNotes/${noteId}`;
 
+// ── Saved reports (generated report card snapshots) ───────────────────────
+export const savedReportsCol = (uid) =>
+  `users/${uid}/savedReports`;
+
+export const savedReportDoc = (uid, reportId) =>
+  `users/${uid}/savedReports/${reportId}`;
+
 // ── Grading type constants (mirror the keys in scales.js GRADING_TYPES) ───
 export const GRADING_TYPE_LETTER = 'letter';
 export const GRADING_TYPE_ESNU   = 'esnu';
