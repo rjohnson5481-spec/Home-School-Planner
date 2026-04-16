@@ -76,11 +76,32 @@
 .ci-results { display: flex; flex-direction: column; gap: 8px; }
 .ci-results-count { font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin: 0; }
 .ci-result-row {
-  display: flex; flex-direction: column; gap: 2px;
+  display: flex; align-items: center; gap: 8px;
   padding: 10px 14px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px;
 }
+.ci-result-row--duplicate { opacity: 0.5; }
+.ci-result-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .ci-result-label { font-size: 14px; font-weight: 600; color: var(--text-primary); }
 .ci-result-dates { font-size: 12px; color: var(--text-muted); }
+.ci-duplicate-badge {
+  display: inline-flex; align-items: center; padding: 2px 7px; border-radius: 8px;
+  font-size: 10px; font-weight: 600; background: var(--bg-surface); color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+/* ── Log button + panel ── */
+.ci-log-btn {
+  display: block; width: 100%; margin-top: 12px; padding: 8px 16px;
+  background: transparent; border: 1px solid var(--border); border-radius: 8px;
+  font-size: 13px; color: var(--text-secondary); font-family: 'Lexend', sans-serif;
+  cursor: pointer; text-align: center;
+}
+.ci-log-btn:hover { border-color: var(--gold); color: var(--gold); }
+.ci-log-panel {
+  background: #22252e; border-radius: 8px; padding: 12px; margin-top: 8px;
+  max-height: 200px; overflow-y: auto; font-size: 11px; font-family: monospace;
+  color: rgba(255,255,255,0.75); white-space: pre-wrap; word-break: break-all;
+}
 
 /* ── Footer ── */
 .ci-sheet-footer {

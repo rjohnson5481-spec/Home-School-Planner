@@ -163,13 +163,16 @@ export default function AcademicRecordsTab() {
   }
   const activeQuarterLabel = (summary.activeSchoolYear?.quarters ?? []).find(q => q.id === selectedQuarterId)?.label ?? 'Quarter';
 
-  // ─── Calendar import handler ───
+  // ─── Calendar import handler (pre-deduped by CalendarImportSheet) ───
   async function handleCalendarImport(breaks) {
     if (!uid || !summary.activeSchoolYear) return;
     const yearId = summary.activeSchoolYear.id;
+    const existing = summary.activeSchoolYear.breaks ?? [];
     for (const b of breaks) {
-      await addBreak(yearId, { label: b.label, startDate: b.startDate, endDate: b.endDate });
+      const dupe = existing.some(e => e.startDate === b.startDate && e.endDate === b.endDate);
+      if (!dupe) await addBreak(yearId, { label: b.label, startDate: b.startDate, endDate: b.endDate });
     }
+    setCalendarImportOpen(false);
   }
 
   return (
@@ -230,6 +233,7 @@ export default function AcademicRecordsTab() {
         open={calendarImportOpen} onClose={() => setCalendarImportOpen(false)}
         onImport={handleCalendarImport}
         yearLabel={summary.activeSchoolYear?.label}
+        existingBreaks={summary.activeSchoolYear?.breaks ?? []}
       />
 
     </div>
