@@ -108,19 +108,6 @@ export default function HomeTab({ onTabChange }) {
             );
           })}
         </div>
-
-        <div className="home-award-card" onClick={() => students.length && setOpenSheet(students[0])}>
-          <div>
-            <div className="home-award-label">🏅 Points & Rewards</div>
-            <div className="home-award-sub">{students.map(s => `${s} ${pointsByStudent[s]?.points ?? 0} pts`).join(' · ')}</div>
-          </div>
-          <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: 18 }}>›</span>
-        </div>
-
-        <div className="home-actions">
-          <button className="home-action-btn home-action-btn--primary" onClick={() => onTabChange('planner')}>📅 Open Planner</button>
-          <button className="home-action-btn home-action-btn--ghost" onClick={() => onTabChange('rewards')}>🏅 Award Points</button>
-        </div>
       </div>
 
       {students.map(name => (
