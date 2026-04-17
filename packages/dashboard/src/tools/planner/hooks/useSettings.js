@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { db } from '@homeschool/shared';
 import {
-  readSettingsStudents, writeSettingsStudents,
+  writeSettingsStudents,
   readSettingsSubjects, writeSettingsSubjects,
 } from '../firebase/settings.js';
 
@@ -12,12 +14,13 @@ export function useSettings(uid, plannerStudent) {
   const [activeStudent, setActiveStudent]     = useState(null);
   const [subjectsByStudent, setSubjectsByStudent] = useState({});
 
-  // Load student list once on mount.
+  // Real-time listener on settings/students document.
   useEffect(() => {
     if (!uid) return;
-    readSettingsStudents(uid).then(names => {
+    return onSnapshot(doc(db, `users/${uid}/settings/students`), snap => {
+      const names = snap.exists() ? (snap.data().names ?? []) : [];
       setStudents(names);
-      if (names.length) setActiveStudent(names[0]);
+      setActiveStudent(prev => prev ?? (names[0] ?? null));
     });
   }, [uid]);
 
