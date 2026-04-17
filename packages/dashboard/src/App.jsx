@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@homeschool/shared';
 import SignIn              from './components/SignIn';
 import BottomNav           from './components/BottomNav';
@@ -16,8 +16,9 @@ export default function App() {
   // Planner student is lifted here so the desktop sidebar can show a
   // student selector when the planner tab is active. Mobile planner
   // header still uses these same props — behavior is unchanged.
-  const [plannerStudent, setPlannerStudent] = useState('Orion');
+  const [plannerStudent, setPlannerStudent] = useState('');
   const { students, subjectsByStudent } = useSettings(user?.uid, plannerStudent);
+  useEffect(() => { if (!plannerStudent && students.length > 0) setPlannerStudent(students[0]); }, [students, plannerStudent]);
   // Dark-mode state lives at the shell so the Settings tab (and the
   // BottomNav sidebar, if ever needed again) can share a single source
   // of truth. The hook writes to `localStorage.color-mode` and the

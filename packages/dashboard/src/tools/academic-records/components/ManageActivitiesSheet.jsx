@@ -1,15 +1,14 @@
 import { useState } from 'react';
 import './ManageActivitiesSheet.css';
 
-const STUDENTS = ['Orion', 'Malachi'];
-
 export default function ManageActivitiesSheet({
-  open, onClose, activities, loading, error, onEditActivity, onAddActivity,
+  open, onClose, activities, loading, error, onEditActivity, onAddActivity, students,
 }) {
-  const [selectedStudent, setSelectedStudent] = useState(STUDENTS[0]);
+  const [selectedStudent, setSelectedStudent] = useState(null);
+  const effectiveStudent = selectedStudent ?? (students ?? [])[0] ?? '';
   if (!open) return null;
 
-  const studentActs = (activities ?? []).filter(a => a.student === selectedStudent);
+  const studentActs = (activities ?? []).filter(a => a.student === effectiveStudent);
 
   return (
     <div className="ma-sheet-overlay" onClick={onClose}>
@@ -21,16 +20,16 @@ export default function ManageActivitiesSheet({
         </header>
         <div className="ma-sheet-body">
           <div className="ma-student-pills">
-            {STUDENTS.map(s => (
+            {(students ?? []).map(s => (
               <button key={s} className={`ma-student-pill${s === selectedStudent ? ' ma-student-pill--active' : ''}`}
                 onClick={() => setSelectedStudent(s)}>{s}</button>
             ))}
           </div>
-          <p className="ma-section-label"><span>{selectedStudent}'s Activities</span></p>
+          <p className="ma-section-label"><span>{effectiveStudent}'s Activities</span></p>
           {error && <p className="ma-empty" role="alert">⚠ {error}</p>}
           {loading && <p className="ma-empty">Loading activities…</p>}
           {!loading && studentActs.length === 0 && (
-            <p className="ma-empty">No activities yet. Add {selectedStudent}'s first activity.</p>
+            <p className="ma-empty">No activities yet. Add {effectiveStudent}'s first activity.</p>
           )}
           {!loading && studentActs.length > 0 && (
             <div className="ma-activity-list">

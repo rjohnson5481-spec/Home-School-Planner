@@ -26,7 +26,8 @@ export default function AcademicRecordsSheets(p) {
       <EnrollmentSheet open={p.enrollmentSheetOpen} onClose={p.closeEnrollments}
         enrollments={p.enrollments} courses={p.courses}
         loading={p.enrollmentsLoading} error={p.enrollmentsError}
-        onEditEnrollment={p.handleEditEnrollment} onAddEnrollment={p.handleAddEnrollment} />
+        onEditEnrollment={p.handleEditEnrollment} onAddEnrollment={p.handleAddEnrollment}
+        students={p.students} />
       <AddEditEnrollmentSheet open={p.addEditEnrollmentSheetOpen} onClose={p.closeAddEditEnrollment}
         onSave={p.handleSaveEnrollment} onDelete={p.handleDeleteEnrollment}
         student={p.enrollingStudent} courses={p.courses} enrollment={p.editingEnrollment} />
@@ -48,16 +49,18 @@ export default function AcademicRecordsSheets(p) {
         attendanceDays={p.attendanceDays} schoolYearLabel={p.activeSchoolYear?.label ?? '—'}
         student={p.selectedStudent} />
       <ReportCardGeneratorSheet open={p.reportCardOpen} onClose={p.closeReportCard}
-        onSaveReport={p.saveReport} student={p.selectedStudent}
+        onSaveReport={p.saveReport} student={p.selectedStudent} students={p.students}
         activeSchoolYear={p.activeSchoolYear} selectedQuarterId={p.selectedQuarterId}
         enrollments={p.enrollments} courses={p.courses} grades={p.grades}
         attendanceDays={p.attendanceDays} reportNotes={p.reportNotes}
         saveNote={p.saveNote} activities={p.activities} />
       <SavedReportCardsSheet open={p.savedReportsOpen} onClose={p.closeSavedReports}
-        savedReports={p.savedReports} loading={p.reportsLoading} onDelete={p.removeReport} />
+        savedReports={p.savedReports} loading={p.reportsLoading} onDelete={p.removeReport}
+        students={p.students} />
       <ManageActivitiesSheet open={p.activitiesSheetOpen} onClose={p.closeActivitiesSheets}
         activities={p.activities} loading={p.activitiesLoading} error={p.activitiesError}
-        onEditActivity={p.onEditActivity} onAddActivity={p.onAddActivity} />
+        onEditActivity={p.onEditActivity} onAddActivity={p.onAddActivity}
+        students={p.students} />
       <AddEditActivitySheet open={p.addEditActivitySheetOpen} onClose={p.closeAddEditActivity}
         onSave={p.handleSaveActivity} onDelete={p.handleDeleteActivity}
         student={p.activityStudent} activity={p.editingActivity} />

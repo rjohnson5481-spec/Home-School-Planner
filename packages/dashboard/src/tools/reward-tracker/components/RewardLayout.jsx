@@ -9,25 +9,20 @@ import SpendSheet   from './SpendSheet.jsx';
 import LogPage      from './LogPage.jsx';
 import './RewardLayout.css';
 
-const STUDENTS = ['Orion', 'Malachi'];
-
-// view state: { page: 'main' | 'log', student: string | null }
 const MAIN = { page: 'main', student: null };
 
-// Props: uid (string)
-// Dark mode is now handled by the shell (Settings tab); the reward tracker
-// no longer needs its own useDarkMode subscriber.
-export default function RewardLayout({ uid }) {
-  const [balances, setBalances] = useState({ Orion: 0, Malachi: 0 });
+export default function RewardLayout({ uid, students }) {
+  const [balances, setBalances] = useState({});
   const [view, setView]         = useState(MAIN);
   const [sheet, setSheet]       = useState(null); // { type: 'award'|'deduct'|'spend', student }
 
   useEffect(() => {
-    const unsubs = STUDENTS.map(s =>
+    if (!students?.length) return;
+    const unsubs = students.map(s =>
       subscribePoints(uid, s, pts => setBalances(prev => ({ ...prev, [s]: pts })))
     );
     return () => unsubs.forEach(u => u());
-  }, [uid]);
+  }, [uid, students]);
 
   function openSheet(type, student) { setSheet({ type, student }); }
   function closeSheet() { setSheet(null); }
@@ -63,7 +58,7 @@ export default function RewardLayout({ uid }) {
       <RewardHeader onBack={null} />
 
       <div className="rl-body">
-        {STUDENTS.map(student => (
+        {(students ?? []).map(student => (
           <StudentCard
             key={student}
             student={student}

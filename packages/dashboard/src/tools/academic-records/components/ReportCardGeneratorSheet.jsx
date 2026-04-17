@@ -3,18 +3,16 @@ import { GRADING_TYPE_LETTER } from '../constants/academics.js';
 import { generateReportCardPDF } from '../utils/generateReportCardPDF.js';
 import './ReportCardGeneratorSheet.css';
 
-const STUDENTS = ['Orion', 'Malachi'];
-
 function todayFormatted() {
   const t = new Date();
   return t.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 }
 
 export default function ReportCardGeneratorSheet({
-  open, onClose, onSaveReport, student, activeSchoolYear, selectedQuarterId,
+  open, onClose, onSaveReport, student, students, activeSchoolYear, selectedQuarterId,
   enrollments, courses, grades, attendanceDays, reportNotes, saveNote, activities,
 }) {
-  const [localStudent, setLocalStudent]   = useState(student ?? STUDENTS[0]);
+  const [localStudent, setLocalStudent]   = useState(student ?? (students ?? [])[0] ?? '');
   const [localQuarter, setLocalQuarter]   = useState(selectedQuarterId);
   const [includeGrades, setIncludeGrades] = useState(true);
   const [includeAttend, setIncludeAttend] = useState(true);
@@ -28,9 +26,9 @@ export default function ReportCardGeneratorSheet({
 
   useEffect(() => {
     if (!open) return;
-    setLocalStudent(student ?? STUDENTS[0]);
+    setLocalStudent(student ?? (students ?? [])[0] ?? '');
     setLocalQuarter(selectedQuarterId);
-    const existing = (reportNotes ?? []).find(n => n.student === (student ?? STUDENTS[0]) && n.quarterId === selectedQuarterId);
+    const existing = (reportNotes ?? []).find(n => n.student === (student ?? (students ?? [])[0] ?? '') && n.quarterId === selectedQuarterId);
     setNotes(existing?.notes ?? '');
     setSaved(false); setGenerating(false);
   }, [open, student, selectedQuarterId, reportNotes]);
@@ -109,7 +107,7 @@ export default function ReportCardGeneratorSheet({
         <div className="rcg-sheet-body">
           <div className="rcg-field">
             <span className="rcg-label">Student</span>
-            <div className="rcg-pills">{STUDENTS.map(s => (
+            <div className="rcg-pills">{(students ?? []).map(s => (
               <button key={s} className={`rcg-pill${s === localStudent ? ' active' : ''}`} onClick={() => setLocalStudent(s)}>{s}</button>
             ))}</div>
           </div>

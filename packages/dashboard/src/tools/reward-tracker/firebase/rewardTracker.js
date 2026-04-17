@@ -7,10 +7,10 @@ import {
 } from 'firebase/firestore';
 import { db } from '@homeschool/shared';
 
-const STUDENTS = ['Orion', 'Malachi'];
+// Seed values for initial points. Only students whose names match get seeded.
+// New students added after first run won't get seeded — acceptable behavior.
 const SEEDS = { Orion: 50, Malachi: 60 };
 
-// Path helpers
 function studentDocPath(uid, student) {
   return `users/${uid}/rewardTracker/${student}`;
 }
@@ -19,16 +19,15 @@ function logColPath(uid, student) {
 }
 
 // Seeds initial points for each student if the doc does not already exist.
-// Uses a localStorage flag to avoid hitting Firestore on every load.
-export async function seedIfNeeded(uid) {
+// Accepts a dynamic students array from Firestore settings.
+export async function seedIfNeeded(uid, students) {
   const key = `rewardTracker_seeded_${uid}`;
   if (localStorage.getItem(key) === 'done') return;
-
-  for (const student of STUDENTS) {
+  for (const student of (students ?? [])) {
     const ref = doc(db, studentDocPath(uid, student));
     const snap = await getDoc(ref);
     if (!snap.exists()) {
-      await setDoc(ref, { points: SEEDS[student] });
+      await setDoc(ref, { points: SEEDS[student] ?? 0 });
     }
   }
   localStorage.setItem(key, 'done');

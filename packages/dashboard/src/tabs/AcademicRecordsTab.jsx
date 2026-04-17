@@ -160,6 +160,7 @@ export default function AcademicRecordsTab() {
         onOpenSavedReports={() => setSavedReportsOpen(true)} onOpenActivities={() => setActivitiesSheetOpen(true)}
       />
       <AcademicRecordsSheets
+        students={students}
         catalogSheetOpen={catalogSheetOpen} closeCatalog={closeCatalog} courses={courses} loading={loading} error={error}
         handleEditCourse={handleEditCourse} handleAddCourse={handleAddCourse}
         addEditSheetOpen={addEditSheetOpen} closeAddEdit={closeAddEdit} handleSaveCourse={handleSaveCourse}

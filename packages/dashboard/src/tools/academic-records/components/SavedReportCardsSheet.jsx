@@ -1,22 +1,20 @@
 import { useState } from 'react';
 import './SavedReportCardsSheet.css';
 
-const STUDENTS = ['Orion', 'Malachi'];
-
 function formatDate(ts) {
   if (!ts?.toDate) return '—';
   return ts.toDate().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
 export default function SavedReportCardsSheet({
-  open, onClose, savedReports, loading, onDelete,
+  open, onClose, savedReports, loading, onDelete, students,
 }) {
   const [confirmId, setConfirmId] = useState(null);
 
   if (!open) return null;
 
   const grouped = {};
-  STUDENTS.forEach(s => { grouped[s] = []; });
+  (students ?? []).forEach(s => { grouped[s] = []; });
   (savedReports ?? []).forEach(r => {
     if (grouped[r.student]) grouped[r.student].push(r);
     else grouped[r.student] = [r];
@@ -35,7 +33,7 @@ export default function SavedReportCardsSheet({
           {!loading && (savedReports ?? []).length === 0 && (
             <p className="src-empty">No reports generated yet.</p>
           )}
-          {!loading && STUDENTS.map(student => {
+          {!loading && (students ?? []).map(student => {
             const reports = grouped[student] ?? [];
             if (reports.length === 0) return null;
             return (
