@@ -5,6 +5,7 @@ import { version } from '../../package.json';
 import './SettingsTab.css';
 import './SettingsRow.css';
 import './SettingsSubjects.css';
+import DataBackupSection from './DataBackupSection.jsx';
 
 const STUDENT_EMOJI = { Orion: '😎', Malachi: '🐼' };
 
@@ -218,6 +219,8 @@ export default function SettingsTab({ user, colorMode, onToggleDarkMode }) {
               </button>
             </div>
           </section>
+
+          <DataBackupSection uid={uid} />
         </div>
 
       </div>
