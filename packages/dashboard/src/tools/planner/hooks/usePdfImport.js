@@ -94,3 +94,18 @@ export function usePdfImport() {
 
   return { file, importing, result, error, log, selectFile, importSchedule, addLog, reset };
 }
+
+export function compareWithExisting(parsedData, existingData) {
+  const diff = [];
+  for (const { dayIndex, lessons } of (parsedData.days ?? [])) {
+    for (const { subject, lesson } of (lessons ?? [])) {
+      const existing = existingData[dayIndex]?.[subject];
+      let status;
+      if (!existing) status = 'new';
+      else if (existing.lesson !== lesson) status = 'changed';
+      else status = 'unchanged';
+      diff.push({ dayIndex, subject, lesson, status });
+    }
+  }
+  return diff;
+}
