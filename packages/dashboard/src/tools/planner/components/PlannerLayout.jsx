@@ -1,5 +1,5 @@
 // Full page layout — receives all state and handlers as props from App.jsx.
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Header          from './Header.jsx';
 import DayStrip        from './DayStrip.jsx';
 import SubjectCard     from './SubjectCard.jsx';
@@ -8,9 +8,16 @@ import UploadSheet     from './UploadSheet.jsx';
 import AddSubjectSheet from './AddSubjectSheet.jsx';
 import MonthSheet      from './MonthSheet.jsx';
 import SickDaySheet    from './SickDaySheet.jsx';
+import CalendarWeekView from './CalendarWeekView.jsx';
 import { getMondayOf, toWeekId, mondayWeekId, formatWeekLabel, DAY_SHORT, DAY_NAMES } from '../constants/days.js';
 import './PlannerLayout.css';
 import './UndoSickSheet.css';
+
+function useIsDesktop() {
+  const [d, setD] = useState(() => typeof window !== 'undefined' && window.innerWidth >= 1024);
+  useEffect(() => { const mq = window.matchMedia('(min-width: 1024px)'); const h = e => setD(e.matches); mq.addEventListener('change', h); return () => mq.removeEventListener('change', h); }, []);
+  return d;
+}
 
 export default function PlannerLayout({
   user,
@@ -113,8 +120,10 @@ export default function PlannerLayout({
   const hasSubjects = subjects.length > 0;
   const doneCount = regularSubjects.filter(s => dayData[s]?.done).length;
 
+  const isDesktop = useIsDesktop();
+
   return (
-    <div className="planner">
+    <div className={`planner${isDesktop ? ' cwv-active' : ''}`}>
       <Header
         user={user}
         student={student}
@@ -134,6 +143,16 @@ export default function PlannerLayout({
           <span className="planner-week-nav-label">{formatWeekLabel(weekDates)}</span>
           <button className="planner-week-nav-btn" onClick={nextWeek} aria-label="Next week">›</button>
         </div>
+
+        {isDesktop && (
+          <CalendarWeekView
+            weekDates={weekDates} prevWeek={prevWeek} nextWeek={nextWeek}
+            jumpToToday={() => jumpToWeek(toWeekId(getMondayOf(new Date())))}
+            loadWeekDataFrom={loadWeekDataFrom} student={student} weekId={weekId}
+            onEditCell={(subject, di) => { setDay(di); setEditTarget({ subject, day: di }); }}
+            onAddSubject={(di) => { setDay(di); setShowAddSubject(true); }}
+          />
+        )}
 
         <DayStrip
           dates={weekDates}

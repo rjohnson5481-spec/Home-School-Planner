@@ -86,4 +86,7 @@
 @media (min-width: 1024px) {
   .cwv-active .planner-week-nav-desktop { display: none; }
   .cwv-active .planner-day-header { display: none; }
+  .cwv-active .day-strip { display: none; }
+  .cwv-active .planner-main { display: none; }
+  .cwv-active .planner-sick-banner { display: none; }
 }
