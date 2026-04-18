@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { DndContext, PointerSensor, useSensor, useSensors, useDraggable, useDroppable } from '@dnd-kit/core';
+import { DndContext, PointerSensor, closestCenter, useSensor, useSensors, useDraggable, useDroppable } from '@dnd-kit/core';
 import { formatWeekLabel } from '../constants/days.js';
 import './CalendarWeekView.css';
 
@@ -83,17 +83,21 @@ export default function CalendarWeekView({
     try {
       if (!over || !active) return;
       const src = parseDragId(active.id);
-      const toDi = parseDropId(over.id);
-      if (!src || toDi == null) return;
+      if (!src) return;
+      const overCard = parseDragId(over.id);
+      const toDi = overCard ? overCard.day : parseDropId(over.id);
+      if (toDi == null) return;
 
       if (src.day === toDi) {
+        const overSubject = overCard?.subject;
         setDayOrder(prev => {
           const subjects = getOrderedSubjects(rendered[toDi] ?? {}, prev[toDi]);
           const fromIdx = subjects.indexOf(src.subject);
           if (fromIdx < 0) return prev;
-          const reordered = [...subjects];
-          reordered.splice(fromIdx, 1);
-          reordered.push(src.subject);
+          const without = subjects.filter(s => s !== src.subject);
+          const targetIdx = overSubject ? without.indexOf(overSubject) : without.length;
+          const reordered = [...without];
+          reordered.splice(targetIdx < 0 ? reordered.length : targetIdx, 0, src.subject);
           return { ...prev, [toDi]: reordered };
         });
         return;
@@ -131,7 +135,7 @@ export default function CalendarWeekView({
         </div>
         <button className="cwv-add-btn" onClick={() => onAddSubject(0)}>+ Add Lesson</button>
       </div>
-      <DndContext key={weekId} sensors={sensors} onDragStart={e => setActiveId(e.active.id)} onDragEnd={handleDragEnd}>
+      <DndContext key={weekId} sensors={sensors} collisionDetection={closestCenter} onDragStart={e => setActiveId(e.active.id)} onDragEnd={handleDragEnd}>
         <div className="cwv-grid">
           {[0, 1, 2, 3, 4].map(di => {
             const date = weekDates[di];
