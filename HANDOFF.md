@@ -1,41 +1,56 @@
-# HANDOFF — v0.25.2 Desktop Calendar: Stable DnD + Optimistic UI
+# HANDOFF — v0.25.3 Desktop Calendar: Remove Selection + Within-Day Reorder
 
 ## What was completed this session
 
 2 code commits + this docs commit on `main`:
 
 ```
-1c19fae chore: bump to v0.25.2
-a42b7d2 fix: stable dnd-kit IDs, optimistic UI, finally cleanup (v0.25.2)
+fff3915 chore: bump to v0.25.3
+49cc023 feat: remove selection state, click-to-open + hold-to-drag, within-day reorder (v0.25.3)
 ```
 
-### Commit 1 — Stable IDs + Optimistic UI (`a42b7d2`)
+### Commit 1 — Remove selection + within-day reorder (`49cc023`)
 
-**CalendarWeekView.jsx (159→183 lines):**
+**CalendarWeekView.jsx (183→186 lines):**
 
-Fix 1 — Stable draggable IDs:
-- Draggable IDs: `card-{dayIndex}-{subject}` — subject key is stable across moves.
-- Droppable IDs: `col-{dayIndex}` — prefixed to avoid collision with draggable IDs.
-- `parseDragId` / `parseDropId` helpers extract day + subject from ID strings.
-- `DndContext key={weekId}` fully resets dnd-kit internal state on week change.
-- `handleDragEnd` wrapped in `try/finally` — `setActiveId(null)` always runs even on error.
-- Selection + optimistic state cleared on week/student change via useEffect.
+Selection removed:
+- Deleted `selected` Set state, `toggleSelect`, `clearSelection`.
+- Deleted selection pill UI from top bar.
+- Deleted multi-card drag logic — drag always moves single card.
+- Click now calls `onEditCell` directly (was toggle selection).
+- Removed `.cwv-card.selected` class, `.cwv-sel-check` badge.
 
-Fix 2 — Optimistic UI:
-- `optimistic` state: `{ [cardDragId]: targetDayIndex }` — tracks pending moves.
-- `mergeOptimistic(weekData, moves)` builds a derived grid that renders cards in their target columns before Firestore confirms.
-- On drag drop: optimistic state updated immediately → card moves visually. Firestore writes fire in background via `Promise.allSettled`.
-- On success: optimistic entry removed, `reload()` called to fetch fresh data.
-- On failure: optimistic entry removed, `errorKeys` set triggers red border on failed card for 2 seconds via `setTimeout`, then auto-clears.
-- `rendered` variable used for grid rendering = `mergeOptimistic(weekData, optimistic)`.
+Within-day reordering added:
+- `dayOrder` state: `{ [dayIndex]: [subject, subject, ...] }` — tracks visual order per column.
+- `getOrderedSubjects(daySubjects, dayOrder)` merges Firestore key order with local dayOrder.
+- Drop on same column: reorders `dayOrder[di]` — card moves to end of list visually.
+- Session-only — no Firestore write for order (subjects are unordered documents).
+- Resets on week/student change.
 
-**CalendarWeekView.css (110→111 lines):**
-- Added `.cwv-card.error` — 1.5px solid var(--red) border with transition.
+Cross-day moves unchanged:
+- Optimistic UI, error handling (red border 2s), `reload()` after move — all preserved.
+- When a card moves cross-day, its entry is removed from source dayOrder.
 
-### Commit 2 — Version bump (`1c19fae`)
-0.25.1 → **0.25.2** across all 3 packages.
+**CalendarWeekView.css (111→93 lines):**
+- Removed `.cwv-card.selected`, `.cwv-sel-check`, `.cwv-sel-pill`, `.cwv-sel-clear` rules.
+- `.cwv-card.error` preserved.
+
+### Commit 2 — Version bump (`fff3915`)
+0.25.2 → **0.25.3** across all 3 packages.
 
 Build green. Mobile completely untouched.
+
+---
+
+## Interaction model (v0.25.3)
+
+| Action | Result |
+|---|---|
+| Click a card | Opens EditSheet |
+| Click + hold + drag to another column | Moves card (optimistic) |
+| Drop on same column | Reorders within day (visual only) |
+| Click + hold done card | No drag (disabled) |
+| Click all-day banner | Opens EditSheet |
 
 ---
 
@@ -43,35 +58,35 @@ Build green. Mobile completely untouched.
 
 | File | Lines |
 |---|---|
-| `CalendarWeekView.jsx` | 183 |
-| `CalendarWeekView.css` | 111 |
+| `CalendarWeekView.jsx` | 186 |
+| `CalendarWeekView.css` | 93 |
+| `PlannerLayout.jsx` | 347 (unchanged, needs split) |
 
 ---
 
 ## What is currently incomplete / pending
 
 - **Browser smoke test** — not run. Walk:
-  - Drag a card to another day → card moves instantly (optimistic), Firestore writes in background.
-  - Drag 2-3 times rapidly → no stuck state, IDs remain stable.
-  - Navigate to different week → DndContext resets, no stale drag state.
-  - Failed Firestore write → card shows red border for 2 seconds then reverts.
-  - Multi-select drag → all selected cards move optimistically.
+  - Click card → EditSheet opens.
+  - Hold + drag card to another day → moves instantly (optimistic).
+  - Hold + drag card within same column → reorders visually.
+  - Done cards: not draggable.
+  - No selection UI anywhere.
   - Mobile: completely unchanged.
 
 - **Not built yet:**
-  - Within-day reordering
-  - Drag overlay (ghost card)
+  - Drag overlay (ghost card while dragging)
   - PlannerLayout.jsx split (347 lines)
 
 ## What the next session should start with
 
 1. Read CLAUDE.md + HANDOFF.md.
-2. Smoke test rapid drag-and-drop on desktop.
+2. Smoke test click-to-open and drag-to-move on desktop.
 
 ## Key file locations
 
 ```
 packages/dashboard/src/tools/planner/components/
-├── CalendarWeekView.jsx                # 159 → 183
-└── CalendarWeekView.css                # 110 → 111
+├── CalendarWeekView.jsx                # 183 → 186
+└── CalendarWeekView.css                # 111 → 93
 ```
