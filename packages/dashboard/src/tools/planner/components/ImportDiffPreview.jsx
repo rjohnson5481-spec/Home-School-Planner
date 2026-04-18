@@ -9,7 +9,7 @@ function formatDayDate(weekId, dayIndex) {
 const BADGE = { new: 'idp-badge--new', changed: 'idp-badge--changed', unchanged: 'idp-badge--unchanged' };
 const LABEL = { new: 'NEW', changed: 'CHANGED', unchanged: 'UNCHANGED' };
 
-export default function ImportDiffPreview({ diff, student, weekId, onCancel, onConfirm }) {
+export default function ImportDiffPreview({ diff, student, weekId }) {
   const safeWeekId = mondayWeekId(weekId);
   const newCount = diff.filter(d => d.status === 'new').length;
   const changedCount = diff.filter(d => d.status === 'changed').length;
@@ -40,10 +40,6 @@ export default function ImportDiffPreview({ diff, student, weekId, onCancel, onC
       </div>
       {hiddenUnchanged > 0 && <p className="idp-hidden">{hiddenUnchanged} unchanged cell{hiddenUnchanged !== 1 ? 's' : ''} hidden</p>}
       <p className="idp-footer">{newCount} new · {changedCount} changed · {unchangedCount} unchanged</p>
-      <div className="idp-actions">
-        <button className="idp-cancel" onClick={onCancel}>Cancel</button>
-        <button className="idp-confirm" onClick={onConfirm} disabled={newCount + changedCount === 0}>Confirm Import</button>
-      </div>
     </div>
   );
 }
