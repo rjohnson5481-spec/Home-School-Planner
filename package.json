@@ -3,7 +3,9 @@
   "private": true,
   "workspaces": ["packages/shared", "packages/dashboard", "packages/te-extractor"],
   "dependencies": {
-    "@anthropic-ai/sdk": "0.30.0"
+    "@anthropic-ai/sdk": "0.30.0",
+    "@netlify/functions": "2.8.1",
+    "firebase-admin": "12.1.0"
   },
   "scripts": {
     "build": "npm run build --workspaces --if-present"
