@@ -30,10 +30,25 @@ export default function RestoreDiffCalendar({ uid, filename, diff, onClose }) {
   // Sorted list of affected weekIds — week navigation only jumps through these.
   const sortedWeekIds = useMemo(() => Object.keys(diff).sort(), [diff]);
 
+  // Students pulled from the diff itself (don't hardcode) — sorted for a
+  // stable pill order.
+  const allStudents = useMemo(() => {
+    const s = new Set();
+    for (const weekId of Object.keys(diff)) {
+      for (const diStr of Object.keys(diff[weekId])) {
+        for (const it of diff[weekId][diStr]) s.add(it.student);
+      }
+    }
+    return [...s].sort();
+  }, [diff]);
+
+  const [activeStudent, setActiveStudent] = useState(() => allStudents[0] ?? null);
   const [weekIdx, setWeekIdx] = useState(0);
   const currentWeekId = sortedWeekIds[weekIdx] ?? null;
 
-  // One checked map across all weeks; seeded from each item's initial `checked`.
+  // One checked map across all weeks AND all students; seeded from each
+  // item's initial `checked`. Keyed via itemKey which already includes
+  // student, so switching students preserves prior checkbox edits.
   const [checked, setChecked] = useState(() => {
     const m = {};
     for (const weekId of sortedWeekIds) {
@@ -52,8 +67,9 @@ export default function RestoreDiffCalendar({ uid, filename, diff, onClose }) {
     setChecked(prev => ({ ...prev, [key]: !prev[key] }));
   }
 
-  // Totals across every week — drives the footer "X changes selected" count
-  // plus the header conflict summary for the currently visible week.
+  // Footer "X changes selected" counts ALL students so the user can see the
+  // full scope of what Restore Selected will write. Header conflict summary
+  // is scoped to the current week AND active student so it matches the grid.
   const { totalSelected, currentWeekConflicts } = useMemo(() => {
     let sel = 0;
     let curConflicts = 0;
@@ -63,14 +79,14 @@ export default function RestoreDiffCalendar({ uid, filename, diff, onClose }) {
         const dayIndex = Number(diStr);
         for (const it of days[diStr]) {
           if (it.status === 'MATCH') continue;
-          if (weekId === currentWeekId) curConflicts++;
+          if (weekId === currentWeekId && it.student === activeStudent) curConflicts++;
           const k = itemKey(weekId, dayIndex, it);
           if (checked[k]) sel++;
         }
       }
     }
     return { totalSelected: sel, currentWeekConflicts: curConflicts };
-  }, [diff, sortedWeekIds, currentWeekId, checked]);
+  }, [diff, sortedWeekIds, currentWeekId, activeStudent, checked]);
 
   async function handleRestore() {
     const out = {};
@@ -103,7 +119,21 @@ export default function RestoreDiffCalendar({ uid, filename, diff, onClose }) {
   return (
     <div className="rdc-overlay">
       <div className="rdc-header">
-        <div className="rdc-header-left" title={filename}>{filename}</div>
+        <div className="rdc-header-left">
+          <span className="rdc-filename" title={filename}>{filename}</span>
+          {allStudents.length > 1 && (
+            <div className="rdc-students" role="tablist" aria-label="Student">
+              {allStudents.map(s => (
+                <button key={s} type="button" role="tab"
+                  aria-selected={s === activeStudent}
+                  className={`rdc-student-pill${s === activeStudent ? ' rdc-student-pill--active' : ''}`}
+                  onClick={() => setActiveStudent(s)}>
+                  {s}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
         <div className="rdc-header-center">
           <button className="rdc-nav" disabled={!canPrev}
             onClick={() => setWeekIdx(i => Math.max(0, i - 1))}
@@ -124,7 +154,7 @@ export default function RestoreDiffCalendar({ uid, filename, diff, onClose }) {
 
       <div className="rdc-grid">
         {[0, 1, 2, 3, 4].map(di => {
-          const items = daysForWeek[di] ?? [];
+          const items = (daysForWeek[di] ?? []).filter(it => it.student === activeStudent);
           const date = weekDates[di];
           return (
             <div key={di} className="rdc-col">
