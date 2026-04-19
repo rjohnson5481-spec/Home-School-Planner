@@ -1,5 +1,5 @@
 import { collection, collectionGroup, doc, getDocs, getDoc, setDoc, deleteDoc } from 'firebase/firestore';
-import { db } from '@homeschool/shared';
+import { db, auth } from '@homeschool/shared';
 
 async function readCol(path) {
   const snap = await getDocs(collection(db, path));
@@ -63,7 +63,8 @@ export async function downloadBackup(uid) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   const date = new Date().toISOString().slice(0, 10);
-  a.href = url; a.download = `ironlight-backup-${date}.json`; a.click();
+  const emailUser = auth.currentUser.email.split('@')[0];
+  a.href = url; a.download = `${emailUser}-backup-${date}.json`; a.click();
   URL.revokeObjectURL(url);
 }
 
