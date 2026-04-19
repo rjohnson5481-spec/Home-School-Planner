@@ -1,7 +1,21 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { applyRestoreDiff } from './backup.js';
 import { DAY_NAMES, getWeekDates } from '../tools/planner/constants/days.js';
+import RestoreDiffCalendar from './RestoreDiffCalendar.jsx';
 import './RestoreDiffSheet.css';
+
+function useIsDesktop() {
+  const query = '(min-width: 1024px)';
+  const get = () => typeof window !== 'undefined' && window.matchMedia(query).matches;
+  const [isDesktop, setIsDesktop] = useState(get);
+  useEffect(() => {
+    const mql = window.matchMedia(query);
+    const onChange = () => setIsDesktop(mql.matches);
+    mql.addEventListener('change', onChange);
+    return () => mql.removeEventListener('change', onChange);
+  }, []);
+  return isDesktop;
+}
 
 function formatDate(d) {
   return d?.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
@@ -52,6 +66,14 @@ function RowLines({ status, backup, current }) {
 //   diff     — nested { [weekId]: { [dayIndex]: [items] } } from generateRestoreDiff
 //   onClose  — close the sheet
 export default function RestoreDiffSheet({ uid, filename, diff, onClose }) {
+  const isDesktop = useIsDesktop();
+  if (isDesktop) {
+    return <RestoreDiffCalendar uid={uid} filename={filename} diff={diff} onClose={onClose} />;
+  }
+  return <RestoreDiffSheetMobile uid={uid} filename={filename} diff={diff} onClose={onClose} />;
+}
+
+function RestoreDiffSheetMobile({ uid, filename, diff, onClose }) {
   const [busy, setBusy] = useState(false);
 
   // Flatten diff into chronologically-sorted day entries; also count totals.
