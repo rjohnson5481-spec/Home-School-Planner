@@ -170,3 +170,80 @@ export async function importFullRestore(uid, backup) {
   }
   return { restored };
 }
+
+// Compares every subject cell in `backup` against live Firestore under this uid
+// and returns a nested diff structure: { [weekId]: { [dayIndex]: [items] } }.
+// Each item = { subject, student, status, backup, current, checked }.
+//   NEW     — in backup, not in Firestore          (checked: true)
+//   CHANGED — in both, but lesson or note differs  (checked: true)
+//   MATCH   — in both, lesson AND note identical   (checked: false — no-op)
+//   DELETE  — in Firestore, not in backup          (checked: true)
+// Uses collectionGroup('subjects') to enumerate live cells — the intermediate
+// week/student/day path segments are ghost paths in this app.
+export async function generateRestoreDiff(uid, backup) {
+  const base = `users/${uid}`;
+  const weeksPrefix = `${base}/weeks/`;
+
+  const live = {};
+  const snap = await getDocs(collectionGroup(db, 'subjects'));
+  for (const s of snap.docs) {
+    if (!s.ref.path.startsWith(weeksPrefix)) continue;
+    live[s.ref.path] = s.data();
+  }
+
+  const diff = {};
+  const backupPaths = new Set();
+  for (const w of (backup?.data?.weeks ?? [])) {
+    const { weekId, student, dayIndex, subject, ...cell } = w;
+    const path = `${weeksPrefix}${weekId}/students/${student}/days/${dayIndex}/subjects/${subject}`;
+    backupPaths.add(path);
+    const current = live[path] ?? null;
+    let status;
+    if (!current) status = 'NEW';
+    else if ((current.lesson ?? '') === (cell.lesson ?? '') && (current.note ?? '') === (cell.note ?? '')) status = 'MATCH';
+    else status = 'CHANGED';
+    (diff[weekId] ??= {})[dayIndex] ??= [];
+    diff[weekId][dayIndex].push({
+      subject, student, status,
+      backup: cell, current,
+      checked: status !== 'MATCH',
+    });
+  }
+
+  for (const path of Object.keys(live)) {
+    if (backupPaths.has(path)) continue;
+    const parts = path.split('/');
+    const weekId = parts[3];
+    const student = parts[5];
+    const dayIndex = Number(parts[7]);
+    const subject = parts[9];
+    (diff[weekId] ??= {})[dayIndex] ??= [];
+    diff[weekId][dayIndex].push({
+      subject, student, status: 'DELETE',
+      backup: null, current: live[path],
+      checked: true,
+    });
+  }
+
+  return diff;
+}
+
+// Walks the diff structure returned by generateRestoreDiff and writes only
+// the checked non-MATCH items to Firestore. NEW/CHANGED → setDoc with the
+// backup cell; DELETE → deleteDoc; MATCH or unchecked → skipped.
+export async function applyRestoreDiff(uid, diff) {
+  const weeksPrefix = `users/${uid}/weeks/`;
+  const ops = [];
+  for (const [weekId, days] of Object.entries(diff)) {
+    for (const [dayIndex, items] of Object.entries(days)) {
+      for (const item of items) {
+        if (!item.checked || item.status === 'MATCH') continue;
+        const path = `${weeksPrefix}${weekId}/students/${item.student}/days/${dayIndex}/subjects/${item.subject}`;
+        if (item.status === 'DELETE') ops.push(deleteDoc(doc(db, path)));
+        else ops.push(setDoc(doc(db, path), item.backup));
+      }
+    }
+  }
+  await Promise.all(ops);
+  return { applied: ops.length };
+}
