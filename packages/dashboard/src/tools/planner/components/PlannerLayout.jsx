@@ -129,6 +129,23 @@ export default function PlannerLayout({
 
   const isDesktop = useIsDesktop();
 
+  // After a Full Restore / Restore Selected completes, the sick-day UI
+  // can persist stale state from before the restore — the action bar
+  // may still show Undo Sick Day for a week whose marker was just
+  // removed in Firestore, or hide it for a week where one was restored.
+  // Navigating to a different week and back fixes it because the
+  // sickDays subscription in useSubjects re-establishes on weekId
+  // change. This effect mirrors that reset: every weekId or student
+  // switch closes the sick-day sheets and drops any carried-over
+  // visibility state so the action bar re-evaluates against the
+  // freshly-subscribed sickDayIndices. Mount triggers it too.
+  useEffect(() => {
+    setShowSickDay(false);
+    setShowUndoSickDay(false);
+  // setShow* are stable useState setters; excluding them is intentional.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [weekId, student]);
+
   async function handleMoveCell(fromDay, subject, toDay) {
     const uid = user?.uid;
     if (!uid) return;
