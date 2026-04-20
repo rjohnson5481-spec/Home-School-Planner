@@ -1,133 +1,143 @@
-# HANDOFF — v0.28.1 Desktop Diff Student Selector
+# HANDOFF — v0.28.2 Sick Day Bugfixes
 
 ## What was completed this session
 
-2 code commits + this docs commit on `main`. One-fix session — added
-a student selector to the desktop calendar diff view so the user can
-review one student at a time instead of scrolling a double-stacked
-grid. No version-0.28.0 behaviour was removed.
+3 code commits + this docs commit on `main`. Two-fix session — both
+about sick-day UI correctness. No feature work, no styling changes.
 
 ```
-<docs>   docs: update HANDOFF v0.28.1
-eaa5d43  chore: bump version to v0.28.1
-47a09e6  feat: student selector in RestoreDiffCalendar (v0.28.1)
+<docs>   docs: update HANDOFF v0.28.2
+c57ab13  chore: bump version to v0.28.2
+9fff94e  fix: reset sick day UI state after restore
+65c6bdb  fix: undo sick day reads correct day from Firestore (v0.28.2)
 ```
 
-### Commit 1 — Student selector + per-student filtering (`47a09e6`)
-Files:
-- `packages/dashboard/src/firebase/RestoreDiffCalendar.jsx` (181 → 211 lines)
-- `packages/dashboard/src/firebase/RestoreDiffCalendar.css` (131 → 153 lines)
+### Commit 1 — Undo Sick Day reads correct day (`65c6bdb`)
+File: `packages/dashboard/src/tools/planner/hooks/useSubjects.js`
 
-**Header** — new `.rdc-students` pill row sits in the left cell next
-to the filename, before the centered week nav. Pills follow the
-brand's Ink & Gold pattern:
-- inactive pill: transparent bg, `rgba(255,255,255,0.15)` border,
-  `rgba(255,255,255,0.45)` text
-- active pill: `rgba(201,168,76,0.15)` bg,
-  `rgba(201,168,76,0.3)` border, `#e8c97a` text
-- rounded pill (border-radius 999px), 11px 600-weight label,
-  0.04em letter-spacing
+`performUndoSickDay` was using the parent's currently-selected UI
+`day` (the highlighted DayStrip pill) as the cascade source. Reproduce:
 
-Student list is derived from the diff itself at render time via
-`useMemo` — walks every item, collects unique `it.student` values,
-sorts alphabetically. No hardcoded Orion/Malachi. If the backup
-contains only one student the pill row is hidden via
-`allStudents.length > 1` JSX gate.
+1. Mark Wednesday as a sick day — lessons cascade Wed→Thu→Fri.
+2. Before hitting Undo, tap Thursday in the DayStrip.
+3. Tap Undo Sick Day.
 
-**State** — one new `activeStudent` useState seeded with
-`allStudents[0]`. The existing `checked` map is unchanged; its keys
-already include student (`itemKey` = `weekId|dayIndex|student|subject`)
-so switching students preserves each student's checkbox edits
-naturally. Switching back and forth never resets.
+Before this fix, the undo would treat Thursday as the sick day,
+shifting Thursday→Wednesday and Friday→Thursday — mangling both
+the original sick-day shift and the following day's lessons.
 
-**Grid filtering** — per-column `daysForWeek[di]` is now filtered
-with `.filter(it => it.student === activeStudent)`. Each column
-renders only the active student's cells. Columns with no cells for
-the active student on that day show the existing `No changes` empty
-state.
+**Fix** — `performUndoSickDay` now scans Mon–Fri of the current
+weekId, reads each sickDay marker via `dbReadSickDay`, and picks
+the first one whose `student` matches the active student. That
+index becomes the cascade source; the marker is the source of
+truth, not the UI selection. Loop is sequential (5 reads max,
+bails on first hit), runs before any writes so the rest of the
+undo cascade is unchanged.
 
-**Conflict counts**:
-- header top-right "X conflicts this week" — now scoped to current
-  week AND active student (added `it.student === activeStudent` to
-  the conflict condition)
-- footer "X changes selected" — unchanged, still totals checked
-  non-MATCH items across ALL students per the spec
+If no marker matches (somehow the button was stale), returns
+early with no writes — same early-return guard the old code had.
 
-**Restore Selected** — `handleRestore` is unchanged. It iterates the
-full diff and writes every checked non-MATCH item regardless of
-which student is currently visible, so users can queue selections
-under Malachi, switch to Orion, queue more, and commit both in a
-single click.
+### Commit 2 — Reset sick-day UI after restore (`9fff94e`)
+File: `packages/dashboard/src/tools/planner/components/PlannerLayout.jsx`
 
-### Commit 2 — Version bump (`eaa5d43`)
-0.28.0 → **0.28.1** across dashboard, shared, te-extractor. Patch
-bump — additive UX polish, no public API changes.
+After a Full Restore or Restore Selected completed, the action bar
+could persist stale Undo Sick Day button state for the current
+week. Navigating to a different week and back fixed it because the
+`subscribeSickDays` effect in `useSubjects` re-subscribes on every
+`weekId` change, pulling fresh data from Firestore.
+
+**Fix** — added a `useEffect` in `PlannerLayout` keyed on
+`[weekId, student]` that calls `setShowSickDay(false)` and
+`setShowUndoSickDay(false)`. This fires on mount and every
+week/student switch, mirroring what the unmount/remount from a
+tab navigation already does. Closes any open sick-day sheet and
+lets the action bar re-evaluate `isSickDay` against the freshly
+re-subscribed `sickDayIndices` prop from `useSubjects`.
+
+**Scope note** — the spec restricted this fix to `PlannerLayout.jsx`
+only. `PlannerLayout` cannot directly detect when a restore
+completes (restore lives in `DataBackupSection.jsx`, a different
+tab), so this fix uses the weekId/student switch as the reset
+trigger rather than a restore-event listener. In practice:
+- Full Restore → user clicks the reload button in the UI → app
+  reloads → PlannerLayout mounts fresh → effect fires on mount.
+- Restore Selected → user closes the diff sheet → navigates from
+  Settings back to Planner → PlannerTab remounts (tabs
+  conditionally render in `App.jsx`) → PlannerLayout mounts
+  fresh → effect fires.
+- In the edge case where planner stays mounted during a restore
+  (not currently possible via the UI, but defensive), the next
+  weekId or student switch will still force the reset.
+
+**File size** — `PlannerLayout.jsx` is now 292 lines, up from 275.
+Still under the 300-line hard cap but above the 250-line split
+target. Splitting was not in scope for this fix (spec said
+"do not touch any other files"). Next session should consider
+splitting PlannerLayout if more logic lands there — obvious cuts:
+pull the sick-day handlers, the desktop calendar mount wiring, or
+the PDF-import `handleApplySchedule` / `handleConfirmImport`
+helpers into their own hook/module.
+
+### Commit 3 — Version bump (`c57ab13`)
+0.28.1 → **0.28.2** across dashboard, shared, te-extractor. Patch
+bump — two bug fixes, no feature or API changes.
 
 ---
 
 ## What is currently broken or incomplete
 
-Nothing from this session. The student selector is feature-complete
-and the existing single-student code path still works (pills hide,
-header condenses back to filename + week nav).
+Nothing net new from this session. Both bug fixes are landed.
 
-Carried over from Session B (v0.28.0), still open:
+Carried over:
 - `generateRestoreDiff` compares weekly subject cells only — does
   not diff `schoolYears`, `courses`, `enrollments`, `grades`,
   `reportNotes`, `activities`, `savedReports`, `sickDays`,
   `subjectPresets`, `rewardTracker`, or `settings/students`.
-- `settings/students` is still never deleted by `importFullRestore`
-  when the backup is missing that key (pre-existing issue).
-
-Deferred polish (not required for feature completeness):
-- Loading toast / spinner in `DataBackupSection` during
-  `generateRestoreDiff` for large backups.
-- Success toast after `applyRestoreDiff` instead of silent close.
-- Secondary confirmation before Restore if many DELETE items
-  are checked.
-- User-facing error surface instead of `console.warn` on apply
-  failure.
+- `settings/students` is never deleted by `importFullRestore` if
+  missing from the backup file (pre-existing).
+- Deferred polish from Session v0.28.0: loading spinner during
+  `generateRestoreDiff`, success toast, confirmation before
+  many-DELETE restores, user-facing error surface.
+- **New**: `PlannerLayout.jsx` is at 292 lines — over the
+  250-line split target. Consider splitting next time logic is
+  added there.
 
 ## What the next session should start with
 
 1. Read `CLAUDE.md` + this `HANDOFF.md`.
-2. Smoke test the student selector with a real two-student backup:
-   - Pills render between filename and week nav
-   - Switching pill filters grid to only that student's cells
-   - Conflict count top-right updates to match visible cells
-   - Uncheck an item under Malachi → switch to Orion → switch back
-     → Malachi's selection is preserved
-   - Restore Selected writes cells from both students in one pass
-3. Smoke test single-student backup — pills should not render.
-4. Optional: decide whether to extend the diff engine to other
-   Firestore surfaces (schoolYears, courses, etc.) or keep it
-   planner-only.
+2. Smoke test Fix 1: mark Wed sick → navigate to Thursday →
+   hit Undo Sick Day → verify Wed's column is restored and
+   Thursday's column untouched.
+3. Smoke test Fix 2:
+   - Mark Wed sick → export backup → navigate to Settings → do
+     Restore Selected (or Factory Reset) against a backup with
+     no sick days → return to planner → Undo button should NOT
+     show on Wed.
+   - Mark Wed sick → do Restore Selected against a backup that
+     also has Wed sick day → return to planner → Undo button
+     SHOULD show on Wed (state is correct).
+4. Optional: extend the diff engine to non-week Firestore
+   surfaces, or split `PlannerLayout.jsx`.
 
-## Decisions made this session (add to CLAUDE.md if still relevant)
+## Decisions made this session
 
-- **Student selector in desktop diff lives in the header bar** —
-  between filename and week nav. Derived from diff data, not from
-  `settings/students`, because the backup is the source of truth
-  for who the diff is about. A backup with only one student hides
-  the pills automatically.
-- **`checked` state is never reset on student switch.** Keys are
-  per-student-subject-day-week, so multiple students can accumulate
-  independent selections and be committed in a single Restore.
-- **Footer "changes selected" counts every student.** Top-right
-  "conflicts this week" counts only the active student. Both are
-  deliberate — the footer shows full impact, the header matches
-  what's on screen.
+- **Sick-day UI reset uses weekId/student switch as the trigger**,
+  not a restore-event listener. Restore itself doesn't emit a
+  signal into PlannerLayout's scope and the spec restricted this
+  fix to one file. The weekId/student switch reliably catches
+  every real-world path that leaves a user looking at the
+  planner after a restore.
+- **`performUndoSickDay` treats the Firestore sick-day marker as
+  source of truth**, not the UI's selected day. The UI day is
+  purely presentational and must never influence which day gets
+  shifted back.
 
 ## Key file locations
 
 ```
-packages/dashboard/src/firebase/backup.js                 # unchanged
-packages/dashboard/src/firebase/RestoreDiffSheet.jsx      # unchanged
-packages/dashboard/src/firebase/RestoreDiffSheet.css      # unchanged
-packages/dashboard/src/firebase/RestoreDiffCalendar.jsx   # +30 lines — student pills + filtering
-packages/dashboard/src/firebase/RestoreDiffCalendar.css   # +22 lines — pill styles, header flex
-packages/dashboard/src/tabs/DataBackupSection.jsx         # unchanged
-packages/dashboard/package.json                           # 0.28.1
-packages/shared/package.json                              # 0.28.1
-packages/te-extractor/package.json                        # 0.28.1
+packages/dashboard/src/tools/planner/hooks/useSubjects.js                  # performUndoSickDay now scans Firestore
+packages/dashboard/src/tools/planner/components/PlannerLayout.jsx         # useEffect resets sick-day sheets on weekId/student change
+packages/dashboard/package.json                                            # 0.28.2
+packages/shared/package.json                                               # 0.28.2
+packages/te-extractor/package.json                                         # 0.28.2
 ```
