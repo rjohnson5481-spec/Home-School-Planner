@@ -1,14 +1,38 @@
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import { subscribeSickDays } from '../firebase/planner.js';
+import { getWeekDates, toWeekId } from '../constants/days.js';
 
-// Sick-day surface for the planner: confirm/undo handlers + a defensive
-// reset effect that closes the sheets on week/student change. Behavior is
-// preserved from the inline implementation in PlannerLayout — isSickDay is
-// still derived per-day via sickDayIndices.has(day).
+// Owns the sick-day surface for the planner: a live Firestore subscription
+// scoped to the current week + student, plus the confirm/undo handlers that
+// were previously inline in PlannerLayout.
+//
+// hasSickDayThisWeek drives the Undo Sick Day button so it renders whenever
+// a sick day exists for this student this week — independent of which day
+// the user is currently viewing. A sick day triggered on mobile is therefore
+// visible on desktop and vice versa, since both clients read the same
+// /users/{uid}/sickDays/{date} markers in real time.
 export function useSickDay({
-  sickDayIndices, day, weekId, student,
+  uid, weekId, student, day,
   performSickDay, performUndoSickDay,
   setDay, setShowSickDay, setShowUndoSickDay,
 }) {
+  const [sickDays, setSickDays] = useState({});
+
+  useEffect(() => {
+    if (!uid) return;
+    const dateStrings = getWeekDates(weekId).map(d => toWeekId(d));
+    return subscribeSickDays(uid, dateStrings, setSickDays);
+  }, [uid, weekId]);
+
+  const sickDayIndices = new Set(
+    getWeekDates(weekId).reduce((acc, date, i) => {
+      if (sickDays[toWeekId(date)]?.student === student) acc.push(i);
+      return acc;
+    }, [])
+  );
+  const hasSickDayThisWeek = sickDayIndices.size > 0;
+  const isSickDay = sickDayIndices.has(day);
+
   // Defensive reset on week/student switch — Full Restore can swap the
   // underlying Firestore state out from under an open sheet.
   useEffect(() => {
@@ -20,9 +44,9 @@ export function useSickDay({
   async function handleSickDayConfirm(selectedSubjects, sickDayIndex) {
     await performSickDay(selectedSubjects, sickDayIndex);
     setShowSickDay(false);
-    // On desktop the SickDaySheet day pills can pick a sickDayIndex that
-    // differs from the parent's `day`; sync so the per-day banner and the
-    // currently-derived isSickDay reflect the sick column immediately.
+    // Jump to the sick column so the per-day banner + shifted lessons are
+    // visible immediately. The Undo button no longer depends on this — it
+    // reads hasSickDayThisWeek, not sickDayIndices.has(day).
     setDay(sickDayIndex);
   }
 
@@ -31,7 +55,8 @@ export function useSickDay({
     setShowUndoSickDay(false);
   }
 
-  const isSickDay = sickDayIndices?.has(day);
-
-  return { isSickDay, handleSickDayConfirm, handleUndoSickDay };
+  return {
+    sickDayIndices, hasSickDayThisWeek, isSickDay,
+    handleSickDayConfirm, handleUndoSickDay,
+  };
 }

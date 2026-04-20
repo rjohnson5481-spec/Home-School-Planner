@@ -29,7 +29,7 @@ export default function PlannerLayout({
   weekDates, prevWeek, nextWeek,
   subjects, dayData, subjectsLoading, updateCell, removeSubject,
   importCell, jumpToWeek, deleteWeek, wipeWeek,
-  performSickDay, performUndoSickDay, sickDayIndices,
+  performSickDay, performUndoSickDay,
   loadWeekDataFrom,
   pdfImport,
   students,
@@ -113,8 +113,11 @@ export default function PlannerLayout({
 
   const allDayData = dayData['allday'] ?? null, hasAllDay = Boolean(allDayData);
   const [showSubjects, setShowSubjects] = useState(false);
-  const { isSickDay, handleSickDayConfirm, handleUndoSickDay } = useSickDay({
-    sickDayIndices, day, weekId, student,
+  const {
+    sickDayIndices, hasSickDayThisWeek, isSickDay,
+    handleSickDayConfirm, handleUndoSickDay,
+  } = useSickDay({
+    uid: user?.uid, weekId, student, day,
     performSickDay, performUndoSickDay,
     setDay, setShowSickDay, setShowUndoSickDay,
   });
@@ -229,7 +232,7 @@ export default function PlannerLayout({
       </div>
 
       <PlannerActionBar
-        isSickDay={isSickDay} hasSubjects={hasSubjects} subjectsLoading={subjectsLoading}
+        isSickDay={hasSickDayThisWeek} hasSubjects={hasSubjects} subjectsLoading={subjectsLoading}
         onUndoSickDay={() => setShowUndoSickDay(true)} onSickDay={() => setShowSickDay(true)}
         onClearWeek={handleDeleteWeek} onImport={() => setShowUpload(true)}
       />
