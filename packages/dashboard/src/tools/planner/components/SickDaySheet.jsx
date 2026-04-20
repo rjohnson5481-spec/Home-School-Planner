@@ -40,11 +40,14 @@ export default function SickDaySheet({
   const [activeDay, setActiveDay]     = useState(day);
   const [allDaysData, setAllDaysData] = useState({ [day]: dayData });
   const [selected, setSelected]       = useState(new Set(subjects));
-  const [loading, setLoading]         = useState(isDesktop || day < 4);
+  // Mobile only needs the single sick-day's data, which already arrives via
+  // the `subjects` + `dayData` props — no fetch required, so `loading`
+  // starts false. Desktop fetches Mon–Fri via loadWeekDataFrom so its day
+  // pills can swap between days without re-querying.
+  const [loading, setLoading]         = useState(isDesktop);
 
   useEffect(() => {
-    // Mobile-Friday case: cascade preview is empty, no extra fetch needed.
-    if (!isDesktop && day >= 4) return;
+    if (!isDesktop) return;
     loadWeekDataFrom(0).then(data => {
       setAllDaysData({ ...data, [day]: dayData });
       setLoading(false);
@@ -65,18 +68,14 @@ export default function SickDaySheet({
     setSelected(new Set(subjs));
   }
 
-  // Desktop: show only the picked day. Mobile: keep cascade preview (sick day + D+1..4).
+  // Desktop: show the day picked via the pill row. Mobile: show only the
+  // day passed in from the DayStrip (the parent's currently-selected day).
+  // No cascade preview on mobile — the cascade still runs in
+  // performSickDay, but it's invisible to the user pre-confirm. This
+  // matches mobile behavior from before v0.27.6.
   const displayDays = isDesktop
     ? [{ dayIndex: activeDay, dayData: allDaysData[activeDay] ?? {} }]
-    : (day === 4
-        ? [{ dayIndex: day, dayData: dayData }]
-        : [
-            { dayIndex: day, dayData: dayData },
-            ...Array.from({ length: 4 - day }, (_, i) => ({
-              dayIndex: day + 1 + i,
-              dayData: allDaysData[day + 1 + i] ?? {},
-            })),
-          ]);
+    : [{ dayIndex: day, dayData: dayData }];
 
   const titleDayName      = isDesktop ? DAY_NAMES[activeDay] : dayName;
   const showFridayWarning = !isDesktop && day < 4 && selected.size > 0;
@@ -91,17 +90,19 @@ export default function SickDaySheet({
           <button className="sick-day-close" onClick={onClose} aria-label="Close">✕</button>
         </div>
 
-        <div className="sick-day-pills">
-          {[0, 1, 2, 3, 4].map(d => (
-            <button
-              key={d}
-              className={`sick-day-pill${d === activeDay ? ' sick-day-pill--active' : ''}`}
-              onClick={() => pickDay(d)}
-            >
-              {DAY_SHORT[d]}
-            </button>
-          ))}
-        </div>
+        {isDesktop && (
+          <div className="sick-day-pills">
+            {[0, 1, 2, 3, 4].map(d => (
+              <button
+                key={d}
+                className={`sick-day-pill${d === activeDay ? ' sick-day-pill--active' : ''}`}
+                onClick={() => pickDay(d)}
+              >
+                {DAY_SHORT[d]}
+              </button>
+            ))}
+          </div>
+        )}
 
         <div className="sick-day-list">
           {loading ? (
