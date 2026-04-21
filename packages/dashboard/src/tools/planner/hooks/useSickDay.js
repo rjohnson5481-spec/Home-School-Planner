@@ -4,9 +4,8 @@ import {
   readDaySubjectsOnce,
   readCell,
   updateCell as fbWriteCell,
-  deleteCell,
 } from '../firebase/planner.js';
-import { getWeekDates, toWeekId, mondayWeekId } from '../constants/days.js';
+import { getWeekDates, toWeekId } from '../constants/days.js';
 
 const ALL_DAY_KEY = 'allday';
 
@@ -20,20 +19,17 @@ const ALL_DAY_KEY = 'allday';
 // visible on desktop and vice versa, since both clients read the same
 // /users/{uid}/sickDays/{date} markers in real time.
 //
-// Friday overflow: before the cascade runs, this hook checks whether the
-// current student has any non-allday lessons on Friday (dayIndex 4) and, if
-// so, parks the pending sick-day confirmation in `fridayOverflow` state and
-// exposes `showFridayOverflow` so PlannerLayout can render
-// FridayOverflowSheet. The user picks Move to Monday, Delete & Start Fresh,
-// or Cancel — the first two clear Friday and then run the pending cascade;
-// Cancel discards the pending action without touching Firestore.
+// When the current student has any non-allday lesson on Friday at confirm
+// time the cascade still runs normally (anything that would land past Friday
+// is dropped) and `showComingSoon` fires afterward to flag the temporary
+// limitation. Proper Friday handling ships with the month view.
 export function useSickDay({
   uid, weekId, student, day,
   performSickDay, performUndoSickDay,
   setDay, setShowSickDay, setShowUndoSickDay,
 }) {
   const [sickDays, setSickDays] = useState({});
-  const [fridayOverflow, setFridayOverflow] = useState(null); // { selectedSubjects, sickDayIndex } | null
+  const [showComingSoon, setShowComingSoon] = useState(false);
 
   useEffect(() => {
     if (!uid) return;
@@ -55,9 +51,16 @@ export function useSickDay({
   useEffect(() => {
     setShowSickDay(false);
     setShowUndoSickDay(false);
-    setFridayOverflow(null);
+    setShowComingSoon(false);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [weekId, student]);
+
+  // Auto-dismiss the coming-soon toast after 5 seconds.
+  useEffect(() => {
+    if (!showComingSoon) return;
+    const t = setTimeout(() => setShowComingSoon(false), 5000);
+    return () => clearTimeout(t);
+  }, [showComingSoon]);
 
   async function hasFridayLessons() {
     const friday = await readDaySubjectsOnce(uid, weekId, student, 4);
@@ -85,45 +88,9 @@ export function useSickDay({
 
   async function handleSickDayConfirm(selectedSubjects, sickDayIndex) {
     setShowSickDay(false);
-    if (await hasFridayLessons()) {
-      setFridayOverflow({ selectedSubjects, sickDayIndex });
-      return;
-    }
+    const fridayHadLessons = await hasFridayLessons();
     await completeSickDay(selectedSubjects, sickDayIndex);
-  }
-
-  function nextMondayWeekId() {
-    const [y, m, d] = weekId.split('-').map(Number);
-    const plus7 = new Date(y, m - 1, d + 7);
-    return mondayWeekId(toWeekId(plus7));
-  }
-
-  async function handleFridayMoveToMonday() {
-    if (!fridayOverflow) return;
-    const nextWeekId = nextMondayWeekId();
-    const friday = await readDaySubjectsOnce(uid, weekId, student, 4);
-    const entries = Object.entries(friday).filter(([k]) => k !== ALL_DAY_KEY);
-    await Promise.all(entries.map(async ([subject, data]) => {
-      await fbWriteCell(uid, nextWeekId, student, subject, 0, data);
-      await deleteCell(uid, weekId, student, 4, subject);
-    }));
-    const pending = fridayOverflow;
-    setFridayOverflow(null);
-    await completeSickDay(pending.selectedSubjects, pending.sickDayIndex);
-  }
-
-  async function handleFridayDeleteFresh() {
-    if (!fridayOverflow) return;
-    const friday = await readDaySubjectsOnce(uid, weekId, student, 4);
-    const subjects = Object.keys(friday).filter(k => k !== ALL_DAY_KEY);
-    await Promise.all(subjects.map(subject => deleteCell(uid, weekId, student, 4, subject)));
-    const pending = fridayOverflow;
-    setFridayOverflow(null);
-    await completeSickDay(pending.selectedSubjects, pending.sickDayIndex);
-  }
-
-  function handleFridayOverflowCancel() {
-    setFridayOverflow(null);
+    if (fridayHadLessons) setShowComingSoon(true);
   }
 
   async function handleUndoSickDay() {
@@ -131,10 +98,13 @@ export function useSickDay({
     setShowUndoSickDay(false);
   }
 
+  function dismissComingSoon() {
+    setShowComingSoon(false);
+  }
+
   return {
     sickDayIndices, hasSickDayThisWeek, isSickDay,
     handleSickDayConfirm, handleUndoSickDay,
-    showFridayOverflow: fridayOverflow !== null,
-    handleFridayMoveToMonday, handleFridayDeleteFresh, handleFridayOverflowCancel,
+    showComingSoon, dismissComingSoon,
   };
 }

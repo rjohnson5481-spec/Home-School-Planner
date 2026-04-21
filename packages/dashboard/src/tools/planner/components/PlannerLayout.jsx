@@ -11,7 +11,6 @@ import SickDaySheet    from './SickDaySheet.jsx';
 import CalendarWeekView from './CalendarWeekView.jsx';
 import PlannerActionBar from './PlannerActionBar.jsx';
 import UndoSickSheet   from './UndoSickSheet.jsx';
-import FridayOverflowSheet from './FridayOverflowSheet.jsx';
 import { readCell, updateCell as fbWriteCell } from '../firebase/planner.js';
 import { useSickDay } from '../hooks/useSickDay.js';
 import { usePlannerHelpers } from '../hooks/usePlannerHelpers.js';
@@ -98,8 +97,7 @@ export default function PlannerLayout({
   const {
     sickDayIndices, hasSickDayThisWeek, isSickDay,
     handleSickDayConfirm, handleUndoSickDay,
-    showFridayOverflow,
-    handleFridayMoveToMonday, handleFridayDeleteFresh, handleFridayOverflowCancel,
+    showComingSoon, dismissComingSoon,
   } = useSickDay({
     uid: user?.uid, weekId, student, day,
     performSickDay, performUndoSickDay,
@@ -245,11 +243,21 @@ export default function PlannerLayout({
         <UndoSickSheet day={day} onConfirm={handleUndoSickDay} onClose={() => setShowUndoSickDay(false)} />
       )}
 
-      {showFridayOverflow && (
-        <FridayOverflowSheet student={student}
-          onMoveToMonday={handleFridayMoveToMonday}
-          onDeleteFresh={handleFridayDeleteFresh}
-          onCancel={handleFridayOverflowCancel} />
+      {showComingSoon && (
+        <div
+          className="planner-coming-soon-toast"
+          role="status"
+          onClick={dismissComingSoon}
+          style={{
+            position: 'fixed', left: 12, right: 12, bottom: 80, zIndex: 250,
+            background: 'var(--bg-card)', border: '1.5px solid var(--gold)',
+            borderRadius: 10, padding: '12px 16px',
+            color: 'var(--text-primary)', fontFamily: 'inherit', fontSize: 14,
+            boxShadow: '0 4px 16px rgba(0,0,0,0.15)', cursor: 'pointer',
+          }}
+        >
+          A month view and improved sick day cascading is coming soon.
+        </div>
       )}
     </div>
   );
