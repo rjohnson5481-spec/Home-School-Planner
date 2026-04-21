@@ -9,17 +9,16 @@ import {
   writeSickDay as dbWriteSickDay,
   readSickDay as dbReadSickDay,
   deleteSickDay as dbDeleteSickDay,
-  subscribeSickDays,
 } from '../firebase/planner.js';
 import { getWeekDates, toWeekId } from '../constants/days.js';
 
 // Manages subjects and cell data for one specific day.
 // Subjects are implicit: a subject exists on a day only when its cell doc exists.
 // dayData shape: { [subject]: { lesson, note, done, flag } }
+// Sick-day indicators live in useSickDay — this hook does not subscribe to them.
 export function useSubjects(uid, weekId, student, day) {
   const [dayData, setDayData] = useState({});
   const [loading, setLoading] = useState(true);
-  const [sickDays, setSickDays] = useState({});
 
   // Subscribe to all subject cells for the current day.
   // Rebuilds whenever uid, weekId, student, or day changes.
@@ -32,14 +31,6 @@ export function useSubjects(uid, weekId, student, day) {
     });
     return () => { unsub(); setLoading(true); };
   }, [uid, weekId, student, day]);
-
-  // Subscribe to sick day markers for the current week (all students).
-  // Rebuilds when uid or weekId changes; student filtering is client-side.
-  useEffect(() => {
-    if (!uid) return;
-    const dateStrings = getWeekDates(weekId).map(d => toWeekId(d));
-    return subscribeSickDays(uid, dateStrings, setSickDays);
-  }, [uid, weekId]);
 
   // Creating a cell IS adding that subject to the current day.
   function addSubject(subject) {
@@ -179,22 +170,12 @@ export function useSubjects(uid, weekId, student, day) {
     return Object.fromEntries(days.map((d, i) => [d, results[i]]));
   }
 
-  // Set of day indices (0-4) that are sick days for the current student this week.
-  const weekDates = getWeekDates(weekId);
-  const sickDayIndices = new Set(
-    weekDates.reduce((acc, date, i) => {
-      const ds = toWeekId(date);
-      if (sickDays[ds]?.student === student) acc.push(i);
-      return acc;
-    }, [])
-  );
-
   const subjects = Object.keys(dayData);
   return {
     subjects, dayData, loading,
     updateCell, addSubject, removeSubject,
     importCell, deleteWeek, wipeWeek,
-    performSickDay, performUndoSickDay, sickDayIndices,
+    performSickDay, performUndoSickDay,
     loadWeekDataFrom,
   };
 }
