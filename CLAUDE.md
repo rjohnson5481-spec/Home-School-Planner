@@ -1,5 +1,5 @@
 # CLAUDE.md — Iron & Light Johnson Academy Homeschool Tools
-Current version: v0.28.8
+Current version: v0.28.9
 
 ## What this repo is
 A monorepo housing all digital tools for Iron & Light Johnson Academy.
@@ -194,6 +194,7 @@ packages/dashboard/src/
     │   │   ├── UndoSickSheet.jsx
     │   │   ├── CalendarWeekView.jsx     ← desktop calendar grid
     │   │   ├── SickDaySheet.jsx
+    │   │   ├── FridayOverflowSheet.jsx  ← Move/Delete/Cancel interstitial
     │   │   ├── UploadSheet.jsx
     │   │   ├── ImportDiffPreview.jsx
     │   │   └── [other sheets]
@@ -228,7 +229,7 @@ Desktop changes are always additive via @media (min-width: 1024px) — never mod
 
 ---
 
-## Tools status (v0.28.8)
+## Tools status (v0.28.9)
 - shared            → ✅ Complete
 - dashboard shell   → ✅ Complete — 6-tab nav, dynamic students, dark mode
 - Home Tab          → ✅ Complete — per-student cards, tappable/expanded, attendance
@@ -332,3 +333,5 @@ Do not open pull requests. Do not create branches named claude/* or feature/*.
 - Full Restore (Factory Reset) wipes all data then restores — two-step confirmation
 - Backup export filename uses email username + date
 - useSickDay hook owns sick day Firestore listener — Undo button driven by Firestore not local state
+- Sick day confirm gates on Friday overflow — if current student has any non-allday lesson on Friday, FridayOverflowSheet opens (Move to Monday / Delete & Start Fresh / Cancel) before the cascade runs. Cancel aborts; the other two clear Friday, then proceed.
+- Sick day confirm auto-writes a "Sick Day" All Day Event — { lesson: 'Sick Day', note: '', done: false, flag: false } at the 'allday' key for the sick column, only if no allday cell already exists there.
