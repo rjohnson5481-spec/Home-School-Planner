@@ -11,6 +11,7 @@ import SickDaySheet    from './SickDaySheet.jsx';
 import CalendarWeekView from './CalendarWeekView.jsx';
 import PlannerActionBar from './PlannerActionBar.jsx';
 import UndoSickSheet   from './UndoSickSheet.jsx';
+import FridayOverflowSheet from './FridayOverflowSheet.jsx';
 import { readCell, updateCell as fbWriteCell } from '../firebase/planner.js';
 import { useSickDay } from '../hooks/useSickDay.js';
 import { usePlannerHelpers } from '../hooks/usePlannerHelpers.js';
@@ -97,6 +98,8 @@ export default function PlannerLayout({
   const {
     sickDayIndices, hasSickDayThisWeek, isSickDay,
     handleSickDayConfirm, handleUndoSickDay,
+    showFridayOverflow,
+    handleFridayMoveToMonday, handleFridayDeleteFresh, handleFridayOverflowCancel,
   } = useSickDay({
     uid: user?.uid, weekId, student, day,
     performSickDay, performUndoSickDay,
@@ -240,6 +243,13 @@ export default function PlannerLayout({
 
       {showUndoSickDay && (
         <UndoSickSheet day={day} onConfirm={handleUndoSickDay} onClose={() => setShowUndoSickDay(false)} />
+      )}
+
+      {showFridayOverflow && (
+        <FridayOverflowSheet student={student}
+          onMoveToMonday={handleFridayMoveToMonday}
+          onDeleteFresh={handleFridayDeleteFresh}
+          onCancel={handleFridayOverflowCancel} />
       )}
     </div>
   );
