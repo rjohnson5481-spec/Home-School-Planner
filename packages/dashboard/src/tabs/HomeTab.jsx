@@ -8,11 +8,19 @@ import StudentDetailSheet from './StudentDetailSheet.jsx';
 import './HomeTab.css';
 import './HomeHeader.css';
 
+function greetingForHour(hour) {
+  if (hour >= 5  && hour < 12) return 'Good Morning';
+  if (hour >= 12 && hour < 17) return 'Good Afternoon';
+  if (hour >= 17 && hour < 21) return 'Good Evening';
+  return 'Good Night';
+}
+
 export default function HomeTab({ onTabChange }) {
   const { user } = useAuth();
   const uid = user?.uid;
   const { students, lessonsByStudent, pointsByStudent, attendance, weekId, dayIndex, todayLabel } = useHomeSummary(uid);
   const [openSheet, setOpenSheet] = useState(null);
+  const greeting = greetingForHour(new Date().getHours());
 
   function handleLessonToggle(student, di, subject, currentDone) {
     if (!uid) return;
@@ -38,7 +46,7 @@ export default function HomeTab({ onTabChange }) {
       <div className="home-content">
         <div className="home-header-bar">
           <span className="home-date">{todayLabel}</span>
-          <span className="home-greeting">Good morning</span>
+          <span className="home-greeting">{greeting}</span>
         </div>
 
         <div className="home-students">
