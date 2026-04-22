@@ -10,8 +10,10 @@ import MonthSheet      from './MonthSheet.jsx';
 import CalendarWeekView from './CalendarWeekView.jsx';
 import PlannerActionBar from './PlannerActionBar.jsx';
 import SickDayManager  from './SickDayManager.jsx';
+import MultiSelectBar  from './MultiSelectBar.jsx';
 import { readCell, updateCell as fbWriteCell } from '../firebase/planner.js';
 import { useSickDay } from '../hooks/useSickDay.js';
+import { useMultiSelect } from '../hooks/useMultiSelect.js';
 import { usePlannerHelpers } from '../hooks/usePlannerHelpers.js';
 import { getMondayOf, toWeekId, formatWeekLabel, DAY_NAMES } from '../constants/days.js';
 import './PlannerLayout.css';
@@ -109,6 +111,10 @@ export default function PlannerLayout({
 
   const isDesktop = useIsDesktop();
 
+  const multiSelect = useMultiSelect({
+    uid: user?.uid, weekId, student, day, subjects: regularSubjects,
+  });
+
   return (
     <div className={`planner${isDesktop ? ' cwv-active' : ''}`}>
       <Header
@@ -192,6 +198,10 @@ export default function PlannerLayout({
                   onEdit={() => setEditTarget({ subject, day })}
                   onToggleDone={() => handleToggleDone(subject)}
                   onToggleFlag={() => handleToggleFlag(subject)}
+                  isSelectMode={multiSelect.isSelectMode}
+                  isSelected={multiSelect.selectedKeys.has(subject)}
+                  onLongPress={() => multiSelect.enterSelectMode(subject)}
+                  onSelect={() => multiSelect.toggleSelect(subject)}
                 />
               ))}
             </div>
@@ -245,6 +255,19 @@ export default function PlannerLayout({
         handleFridayComingSoonConfirm={handleFridayComingSoonConfirm}
         handleFridayComingSoonDismiss={handleFridayComingSoonDismiss}
       />
+
+      {!isDesktop && multiSelect.isSelectMode && (
+        <MultiSelectBar
+          selectedCount={multiSelect.selectedCount}
+          day={day}
+          deleteConfirmPending={multiSelect.deleteConfirmPending}
+          onSelectAll={multiSelect.selectAll}
+          onMarkDone={multiSelect.handleMarkDone}
+          onMoveToDay={multiSelect.handleMoveToDay}
+          onDelete={multiSelect.handleDelete}
+          onCancel={multiSelect.exitSelectMode}
+        />
+      )}
     </div>
   );
 }
