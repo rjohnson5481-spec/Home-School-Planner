@@ -115,7 +115,7 @@
 .rcg-generate-btn:disabled { opacity: 0.4; cursor: default; }
 
 /* ── Large phone ── */
-@media (min-width: 400px) and (max-width: 1023px) {
+@media (min-width: 400px) and (max-width: 809px) {
   .rcg-sheet-title { font-size: 17px; }
   .rcg-sheet-body  { padding: 20px; gap: 18px; }
   .rcg-preview-school { font-size: 16px; }

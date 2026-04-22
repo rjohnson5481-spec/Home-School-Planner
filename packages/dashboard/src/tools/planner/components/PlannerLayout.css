@@ -179,10 +179,10 @@
   border: 1px solid #f5cfc6;
 }
 
-/* ── Large phone (400–1023px) — scaled up for wide phones ── */
+/* ── Large phone (400–809px) — scaled up for wide phones ── */
 /* Header grows to ~140px; day-strip top, body margin-top, action-bar
    bottom all shift to match (bottom nav is 68px at this breakpoint). */
-@media (min-width: 400px) and (max-width: 1023px) {
+@media (min-width: 400px) and (max-width: 809px) {
   .planner-body        { margin-top: 140px; }
   .planner-main        { padding: 16px 20px 170px; }
   .planner-subjects    { gap: 14px; }
@@ -192,7 +192,7 @@
   .planner-action-btn  { padding: 12px 20px; font-size: 14px; }
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 810px) {
   /* Planner-body fills the shell content area. No margin-left here —
      shell's own margin-left: 200px in App.css handles the sidebar
      offset; mobile's margin-left/right: auto keeps it centered. */

@@ -71,7 +71,7 @@
 .home-action-btn--ghost { background: transparent; border: 1.5px solid var(--border); color: var(--text-secondary); }
 .home-action-btn--ghost:hover { border-color: var(--gold); color: var(--gold); }
 
-@media (min-width: 400px) and (max-width: 1023px) {
+@media (min-width: 400px) and (max-width: 809px) {
   .home-content { padding: 0 0 32px; }
   .home-header-bar { padding: 20px 20px 14px; }
   .home-date { font-size: 12px; }
@@ -87,7 +87,7 @@
   .home-action-btn { padding: 14px; font-size: 15px; }
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 810px) {
   .home-header { display: none; }
   .home-content { max-width: none; padding: 0 0 32px; }
   .home-header-bar { padding: 24px 28px 14px; }

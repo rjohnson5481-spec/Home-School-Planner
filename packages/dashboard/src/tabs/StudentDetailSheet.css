@@ -71,7 +71,7 @@
 .sds-award-confirm:hover:not(:disabled) { background: var(--gold-light); }
 .sds-award-success { text-align: center; font-size: 14px; font-weight: 600; color: var(--gold); padding: 12px; }
 
-@media (min-width: 400px) and (max-width: 1023px) {
+@media (min-width: 400px) and (max-width: 809px) {
   .sds-header-name { font-size: 18px; }
   .sds-lesson-subject { font-size: 15px; }
   .sds-award-btn { padding: 12px; font-size: 18px; }

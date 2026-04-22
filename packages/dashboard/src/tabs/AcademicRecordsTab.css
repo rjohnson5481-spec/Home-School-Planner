@@ -242,8 +242,8 @@
 .ar-action-btn.disabled { opacity: 0.45; cursor: default; }
 .ar-action-btn .soon { font-size: 11px; font-weight: 600; color: var(--gold); letter-spacing: 0.06em; }
 
-/* ── Large phone (400–1023px) — scaled up for wide phones ── */
-@media (min-width: 400px) and (max-width: 1023px) {
+/* ── Large phone (400–809px) — scaled up for wide phones ── */
+@media (min-width: 400px) and (max-width: 809px) {
   .ar-tab               { padding: 24px 20px; }
   .ar-title             { font-size: 24px; }
   .ar-subtitle          { font-size: 13px; }
@@ -258,8 +258,8 @@
   .ar-attendance-num    { font-size: 36px; }
 }
 
-/* ── Desktop (≥1024px) ── */
-@media (min-width: 1024px) {
+/* ── Desktop (≥810px) ── */
+@media (min-width: 810px) {
   .ar-tab        { padding: 28px; }
   .ar-stats-row  { grid-template-columns: repeat(3, 1fr); }
 }

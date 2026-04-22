@@ -276,8 +276,8 @@
   color: var(--gold);
 }
 
-/* ── Large phone (400–1023px) — scaled up for wide phones ── */
-@media (min-width: 400px) and (max-width: 1023px) {
+/* ── Large phone (400–809px) — scaled up for wide phones ── */
+@media (min-width: 400px) and (max-width: 809px) {
   .en-sheet-title          { font-size: 17px; }
   .en-sheet-body           { padding: 20px; }
   .en-student-pill         { padding: 8px 18px; font-size: 14px; }

@@ -116,8 +116,8 @@
 .log-entry-pts--deduct { color: #c97c2a; }
 .log-entry-pts--spend  { color: var(--red); }
 
-/* ── Large phone (400–1023px) — log page scaled up ── */
-@media (min-width: 400px) and (max-width: 1023px) {
+/* ── Large phone (400–809px) — log page scaled up ── */
+@media (min-width: 400px) and (max-width: 809px) {
   .log-body            { padding: 24px 20px; }
   .log-student-bar     { padding: 16px 18px; }
   .log-avatar          { font-size: 36px; }

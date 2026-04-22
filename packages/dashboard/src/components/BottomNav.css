@@ -72,8 +72,8 @@
   max-width: 100%;
 }
 
-/* ── Large phone (400–1023px): taller nav, bigger icons + labels ── */
-@media (min-width: 400px) and (max-width: 1023px) {
+/* ── Large phone (400–809px): taller nav, bigger icons + labels ── */
+@media (min-width: 400px) and (max-width: 809px) {
   .bottom-nav { height: 68px; }
   .bn-tab     { min-height: 68px; }
   .bn-icon    { font-size: 24px; }
@@ -81,7 +81,7 @@
 }
 
 /* ── Desktop: fixed left sidebar ── */
-@media (min-width: 1024px) {
+@media (min-width: 810px) {
   .bottom-nav {
     top: 0;
     right: auto;

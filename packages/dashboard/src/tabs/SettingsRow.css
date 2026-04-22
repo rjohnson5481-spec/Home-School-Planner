@@ -121,8 +121,8 @@
 }
 .st-row-remove:hover { background: var(--red-lt); color: var(--red); }
 
-/* ── Large phone (400–1023px) — rows scaled up ── */
-@media (min-width: 400px) and (max-width: 1023px) {
+/* ── Large phone (400–809px) — rows scaled up ── */
+@media (min-width: 400px) and (max-width: 809px) {
   .st-row       { padding: 16px; }
   .st-row-title { font-size: 15px; }
   .st-row-sub   { font-size: 12px; }

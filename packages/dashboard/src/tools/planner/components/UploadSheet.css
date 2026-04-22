@@ -230,8 +230,8 @@
 
 .upload-sheet-import-btn:disabled { opacity: 0.4; cursor: default; }
 
-/* ── Large phone (400–1023px) — sheet scaled up ── */
-@media (min-width: 400px) and (max-width: 1023px) {
+/* ── Large phone (400–809px) — sheet scaled up ── */
+@media (min-width: 400px) and (max-width: 809px) {
   .upload-sheet-title        { font-size: 18px; }
   .upload-sheet-body         { padding: 24px 20px; gap: 14px; }
   .upload-sheet-file-hint    { font-size: 15px; }

@@ -79,8 +79,8 @@
 
 .upload-sheet-log-btn:hover { color: var(--text-secondary); }
 
-/* ── Large phone (400–1023px) — result preview scaled up ── */
-@media (min-width: 400px) and (max-width: 1023px) {
+/* ── Large phone (400–809px) — result preview scaled up ── */
+@media (min-width: 400px) and (max-width: 809px) {
   .upload-sheet-result-meta  { font-size: 15px; }
   .upload-sheet-day-header   { font-size: 14px; }
   .upload-sheet-lesson-row   { font-size: 14px; }

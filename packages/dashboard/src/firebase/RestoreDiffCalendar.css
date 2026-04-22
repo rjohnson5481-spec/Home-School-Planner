@@ -1,4 +1,4 @@
-/* RestoreDiffCalendar — desktop-only (≥1024px) full-screen diff view.
+/* RestoreDiffCalendar — desktop-only (≥810px) full-screen diff view.
    Component is gated by RestoreDiffSheet.jsx so base rules assume desktop. */
 
 /* ── Full-screen overlay ── */

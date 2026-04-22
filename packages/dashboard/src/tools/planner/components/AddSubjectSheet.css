@@ -202,9 +202,9 @@
   font-weight: 600;
 }
 
-/* ── Large phone (400–1023px) — body content scaled up ── */
+/* ── Large phone (400–809px) — body content scaled up ── */
 /* .add-sheet-input raised to 16px to prevent iOS auto-zoom on focus. */
-@media (min-width: 400px) and (max-width: 1023px) {
+@media (min-width: 400px) and (max-width: 809px) {
   .add-sheet-input         { font-size: 16px; padding: 12px 14px; }
   .add-sheet-add-btn       { padding: 12px 20px; font-size: 15px; }
   .add-sheet-section-label { font-size: 11px; }

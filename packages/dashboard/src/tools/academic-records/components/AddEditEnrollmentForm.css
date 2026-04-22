@@ -252,8 +252,8 @@
   font-family: inherit;
 }
 
-/* ── Large phone (400–1023px) — form fields scaled up ── */
-@media (min-width: 400px) and (max-width: 1023px) {
+/* ── Large phone (400–809px) — form fields scaled up ── */
+@media (min-width: 400px) and (max-width: 809px) {
   .aee-label                { font-size: 12px; }
   .aee-readonly             { font-size: 15px; padding: 12px 14px; }
   .aee-helper               { font-size: 13px; }

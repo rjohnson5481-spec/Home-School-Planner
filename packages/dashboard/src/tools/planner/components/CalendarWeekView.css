@@ -1,4 +1,4 @@
-/* CalendarWeekView — desktop-only (≥1024px) planner calendar.
+/* CalendarWeekView — desktop-only (≥810px) planner calendar.
    Component only mounts at desktop widths so base rules are not media-gated,
    but the week-nav hide is scoped to avoid mobile leakage. */
 
@@ -84,7 +84,7 @@
 .cwv-col-add:hover { border-color: var(--gold); color: var(--gold); }
 
 /* ── Hide existing desktop week nav when calendar view is active ── */
-@media (min-width: 1024px) {
+@media (min-width: 810px) {
   .cwv-active .planner-week-nav-desktop { display: none; }
   .cwv-active .planner-day-header { display: none; }
   .cwv-active .day-strip { display: none; }

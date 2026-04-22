@@ -77,8 +77,8 @@
   font-size: 11px; color: var(--text-muted); font-style: italic; margin: 16px 0 0;
 }
 
-/* ── Large phone (400–1023px) ── */
-@media (min-width: 400px) and (max-width: 1023px) {
+/* ── Large phone (400–809px) ── */
+@media (min-width: 400px) and (max-width: 809px) {
   .ads-sheet-title  { font-size: 17px; }
   .ads-sheet-body   { padding: 28px 24px; }
   .ads-big-number   { font-size: 56px; }

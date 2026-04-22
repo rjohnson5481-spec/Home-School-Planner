@@ -97,8 +97,8 @@
   line-height: 1;
 }
 
-/* ── Large phone (400–1023px) — reward header scaled up ── */
-@media (min-width: 400px) and (max-width: 1023px) {
+/* ── Large phone (400–809px) — reward header scaled up ── */
+@media (min-width: 400px) and (max-width: 809px) {
   .rh-top              { height: 64px; }
   .rh-back-btn         { width: 40px; height: 40px; font-size: 20px; }
   .rh-back-spacer      { width: 40px; }
@@ -108,10 +108,10 @@
   .rh-school-tagline   { font-size: 11px; }
 }
 
-/* ── Desktop (≥1024px) — reward tracker header hidden inside the shell ── */
+/* ── Desktop (≥810px) — reward tracker header hidden inside the shell ── */
 /* Mobile layout is COMPLETELY UNCHANGED. Shell sidebar provides branding,
    nav, sign-out, and dark-mode toggle on desktop — the tool's own header
    is redundant there. */
-@media (min-width: 1024px) {
+@media (min-width: 810px) {
   .rh-header { display: none; }
 }

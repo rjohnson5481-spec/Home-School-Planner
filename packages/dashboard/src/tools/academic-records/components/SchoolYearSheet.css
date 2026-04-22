@@ -279,8 +279,8 @@
   color: var(--gold);
 }
 
-/* ── Large phone (400–1023px) — scaled up for wide phones ── */
-@media (min-width: 400px) and (max-width: 1023px) {
+/* ── Large phone (400–809px) — scaled up for wide phones ── */
+@media (min-width: 400px) and (max-width: 809px) {
   .sy-sheet-title       { font-size: 17px; }
   .sy-sheet-body        { padding: 20px; }
   .sy-year-header       { padding: 12px 16px; gap: 12px; }

@@ -11,10 +11,10 @@
   gap: 16px;
 }
 
-/* ── Large phone (400–1023px): student card scaled up ── */
+/* ── Large phone (400–809px): student card scaled up ── */
 /* Rules here also target StudentCard.css classes (.sc-*) to group the
    "student card scale-up" per spec; base StudentCard.css is unchanged. */
-@media (min-width: 400px) and (max-width: 1023px) {
+@media (min-width: 400px) and (max-width: 809px) {
   .rl-body        { padding: 24px 20px; }
   .sc-identity    { padding: 22px 22px 0; gap: 16px; }
   .sc-avatar      { font-size: 44px; width: 60px; height: 60px; }
@@ -27,10 +27,10 @@
   .sc-btn         { padding: 14px 0; font-size: 14px; }
 }
 
-/* ── Desktop (≥1024px): full-width content, two-column card grid ── */
+/* ── Desktop (≥810px): full-width content, two-column card grid ── */
 /* Mobile layout above is COMPLETELY UNCHANGED. Reward header is hidden
    on desktop (see RewardHeader.css), so no 56px top margin needed. */
-@media (min-width: 1024px) {
+@media (min-width: 810px) {
   .rl-body {
     margin-top: 0;
     max-width: none;

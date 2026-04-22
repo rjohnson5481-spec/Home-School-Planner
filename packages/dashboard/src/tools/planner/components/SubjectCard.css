@@ -203,8 +203,8 @@
   border-color: rgba(224, 82, 82, 0.4);
 }
 
-/* ── Large phone (400–1023px) — subject cards scaled up ── */
-@media (min-width: 400px) and (max-width: 1023px) {
+/* ── Large phone (400–809px) — subject cards scaled up ── */
+@media (min-width: 400px) and (max-width: 809px) {
   .subject-card             { padding: 18px 16px; gap: 14px; }
   .subject-card-checkbox    { width: 40px; height: 40px; }
   .subject-card-flag-btn    { width: 32px; height: 32px; font-size: 17px; }
@@ -217,7 +217,7 @@
 }
 
 /* ── Mobile-only multi-select selected state ── */
-@media (max-width: 1023px) {
+@media (max-width: 809px) {
   .subject-card { position: relative; }
 
   .subject-card--selected {

@@ -247,8 +247,8 @@
   color: var(--gold);
 }
 
-/* ── Large phone (400–1023px) — scaled up for wide phones ── */
-@media (min-width: 400px) and (max-width: 1023px) {
+/* ── Large phone (400–809px) — scaled up for wide phones ── */
+@media (min-width: 400px) and (max-width: 809px) {
   .cc-sheet-title       { font-size: 17px; }
   .cc-sheet-body        { padding: 20px; }
   .cc-section-label     { font-size: 11px; }

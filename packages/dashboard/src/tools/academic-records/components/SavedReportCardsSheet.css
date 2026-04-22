@@ -61,7 +61,7 @@
   font-size: 12px; font-weight: 500; color: var(--text-secondary); cursor: pointer; font-family: inherit;
 }
 
-@media (min-width: 400px) and (max-width: 1023px) {
+@media (min-width: 400px) and (max-width: 809px) {
   .src-sheet-title { font-size: 17px; }
   .src-sheet-body { padding: 20px; }
   .src-report-row { padding: 14px 16px; }

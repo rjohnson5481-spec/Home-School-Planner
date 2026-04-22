@@ -77,9 +77,9 @@
   border-color: var(--gold);
 }
 
-/* ── Large phone (400–1023px) — day picker scaled up ── */
+/* ── Large phone (400–809px) — day picker scaled up ── */
 /* detail-input raised to 16px to prevent iOS auto-zoom on focus. */
-@media (min-width: 400px) and (max-width: 1023px) {
+@media (min-width: 400px) and (max-width: 809px) {
   .add-sheet-day-pill     { padding: 10px 6px; }
   .add-sheet-day-short    { font-size: 11px; }
   .add-sheet-day-date     { font-size: 16px; }

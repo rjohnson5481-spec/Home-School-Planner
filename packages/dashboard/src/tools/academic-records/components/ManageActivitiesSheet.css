@@ -59,7 +59,7 @@
 }
 .ma-add-btn:hover { border-color: var(--gold); color: var(--gold); }
 
-@media (min-width: 400px) and (max-width: 1023px) {
+@media (min-width: 400px) and (max-width: 809px) {
   .ma-sheet-title { font-size: 17px; }
   .ma-sheet-body { padding: 20px; }
   .ma-student-pill { padding: 8px 18px; font-size: 14px; }

@@ -1,5 +1,5 @@
-/* Mobile-only multi-select bar — never rendered or styled at ≥1024px. */
-@media (max-width: 1023px) {
+/* Mobile-only multi-select bar — never rendered or styled at ≥810px. */
+@media (max-width: 809px) {
   .msb-wrap {
     position: fixed;
     left: 0;
@@ -97,7 +97,7 @@
 }
 
 /* Large-phone band scaling — mirrors the BottomNav 68px height. */
-@media (min-width: 400px) and (max-width: 1023px) {
+@media (min-width: 400px) and (max-width: 809px) {
   .msb { height: 68px; }
   .msb-btn { font-size: 12px; }
 }
