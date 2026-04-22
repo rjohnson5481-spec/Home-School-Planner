@@ -215,11 +215,13 @@ export default function PlannerLayout({
         </main>
       </div>
 
-      <PlannerActionBar
-        isSickDay={hasSickDayThisWeek} hasSubjects={hasSubjects} subjectsLoading={subjectsLoading}
-        onUndoSickDay={() => setShowUndoSickDay(true)} onSickDay={() => setShowSickDay(true)}
-        onClearWeek={handleDeleteWeek} onImport={() => setShowUpload(true)}
-      />
+      {!multiSelect.isSelectMode && (
+        <PlannerActionBar
+          isSickDay={hasSickDayThisWeek} hasSubjects={hasSubjects} subjectsLoading={subjectsLoading}
+          onUndoSickDay={() => setShowUndoSickDay(true)} onSickDay={() => setShowSickDay(true)}
+          onClearWeek={handleDeleteWeek} onImport={() => setShowUpload(true)}
+        />
+      )}
 
       {editTarget && (
         <EditSheet subject={editTarget.subject} data={dayData[editTarget.subject]}
