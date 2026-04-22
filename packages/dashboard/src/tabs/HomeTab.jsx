@@ -17,7 +17,7 @@ function greetingForHour(hour) {
 export default function HomeTab({ onTabChange }) {
   const { user } = useAuth();
   const uid = user?.uid;
-  const { students, lessonsByStudent, pointsByStudent, attendance, weekId, dayIndex, todayLabel } = useHomeSummary(uid);
+  const { students, lessonsByStudent, attendance, weekId, dayIndex, todayLabel } = useHomeSummary(uid);
   const [openSheet, setOpenSheet] = useState(null);
   const greeting = greetingForHour(new Date().getHours());
 
@@ -50,7 +50,6 @@ export default function HomeTab({ onTabChange }) {
         <div className="home-students">
           {students.map(name => {
             const lessons = lessonsByStudent[name] ?? [];
-            const pts = pointsByStudent[name] ?? { points: 0, cashValue: '0.00' };
             const att = attendance[name] ?? { attended: 0, required: 175, sick: 0, breakDays: 0, schoolDays: 0 };
             const total = lessons.length, done = lessons.filter(l => l.done).length;
             const allDone = total > 0 && done === total;
@@ -72,10 +71,6 @@ export default function HomeTab({ onTabChange }) {
                     <div className="home-student-stat-label">Done</div>
                   </div>
                   <div className="home-student-stat">
-                    <div className="home-student-stat-value gold">{pts.points}</div>
-                    <div className="home-student-stat-label">Points</div>
-                  </div>
-                  <div className="home-student-stat">
                     <div className="home-student-stat-value blue">{att.attended}</div>
                     <div className="home-student-stat-label">Days</div>
                   </div>
@@ -84,7 +79,6 @@ export default function HomeTab({ onTabChange }) {
                   <div className="home-progress-row">
                     <div className="home-progress-labels">
                       <span>{done} of {total} done</span>
-                      <span>${pts.cashValue}</span>
                     </div>
                     <div className="home-progress-track">
                       <div className="home-progress-fill-lessons" style={{ width: `${lessonPct}%` }} />
@@ -119,7 +113,7 @@ export default function HomeTab({ onTabChange }) {
       {students.map(name => (
         <StudentDetailSheet key={name} open={openSheet === name} onClose={() => setOpenSheet(null)}
           student={name} lessons={lessonsByStudent[name] ?? []}
-          attendance={attendance[name]} points={pointsByStudent[name]}
+          attendance={attendance[name]}
           uid={uid} weekId={weekId}
           onLessonToggle={handleLessonToggle} onAwardPoints={handleAwardPoints} />
       ))}
