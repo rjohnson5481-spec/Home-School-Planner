@@ -31,7 +31,7 @@ export default function App() {
   return (
     <div className="app-shell">
       <div className="shell-content">
-        {activeTab === 'home'     && <HomeTab onTabChange={setActiveTab} />}
+        {activeTab === 'home'     && <HomeTab />}
         {activeTab === 'planner'  && (
           <PlannerTab
             student={plannerStudent}
