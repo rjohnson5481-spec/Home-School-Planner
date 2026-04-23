@@ -290,6 +290,7 @@ Any non-trivial logic gets prototyped in scratch.js first. Never committed.
 ## End of every session — required
 1. Update CLAUDE.md with any new decisions made this session
 2. Overwrite HANDOFF.md using the lean format (see prompt guide)
+3. Before carrying forward any "What is broken or incomplete" bullet from the prior HANDOFF, verify the described condition still exists in current code. If the condition has been resolved, drop the bullet rather than propagating it. Do not preserve stale bullets "just in case."
 
 ## Start of every session — required
 1. Read CLAUDE.md in full
