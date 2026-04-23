@@ -75,11 +75,6 @@ export function useSubjects(uid, weekId, student, day) {
     return dbUpdateCell(uid, importWeekId, importStudent, subject, dayIndex, cleaned);
   }
 
-  // Deletes all cells for an explicit weekId+student — used by PDF import wipe.
-  function wipeWeek(targetWeekId, targetStudent) {
-    return dbDeleteWeek(uid, targetWeekId, targetStudent);
-  }
-
   // Cascades selected subjects forward within the current week only.
   // Each subject's chain builds through consecutive scheduled days (Mon–Fri).
   // If the chain reaches Friday, the Friday content is displaced (not written
@@ -174,7 +169,7 @@ export function useSubjects(uid, weekId, student, day) {
   return {
     subjects, dayData, loading,
     updateCell, addSubject, removeSubject,
-    importCell, deleteWeek, wipeWeek,
+    importCell, deleteWeek,
     performSickDay, performUndoSickDay,
     loadWeekDataFrom,
   };
