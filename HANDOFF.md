@@ -42,21 +42,12 @@
   since HomeTab no longer passes a points prop. Last
   rewardTracker UI vestige — remove on next
   StudentDetailSheet touch.
-- useSubjects.js and useSickDay.js both subscribe to
-  sick days. Duplicate listener — collapse on the next
-  useSubjects touch.
-- CalendarWeekView.jsx calls Firebase and useAuth
-  directly instead of going through props/hooks.
-  Refactor on next touch.
 - PDF helpers + `handleMoveCell` still live inside
   PlannerLayout.jsx via `usePlannerHelpers`. Further
   extraction on the next PlannerLayout touch if the file
   needs to shed more lines.
 - Emoji maps are hardcoded for Orion/Malachi in 4 files.
   Deferred — needs a per-student emoji setting.
-- Netlify Blobs auto-backup is running but still
-  unverified — confirm a backup appears in the Blobs
-  store after the next scheduled run.
 - firebase/backup.js still reads/writes the
   rewardTracker collection so old backups continue to
   round-trip. Safe — trim when the backup format is next
