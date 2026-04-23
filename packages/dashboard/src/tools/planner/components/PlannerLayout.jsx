@@ -11,10 +11,10 @@ import CalendarWeekView from './CalendarWeekView.jsx';
 import PlannerActionBar from './PlannerActionBar.jsx';
 import SickDayManager  from './SickDayManager.jsx';
 import MultiSelectBar  from './MultiSelectBar.jsx';
-import { readCell, updateCell as fbWriteCell } from '../firebase/planner.js';
 import { useSickDay } from '../hooks/useSickDay.js';
 import { useMultiSelect } from '../hooks/useMultiSelect.js';
 import { usePlannerHelpers } from '../hooks/usePlannerHelpers.js';
+import { useCellToggles } from '../hooks/useCellToggles.js';
 import { getMondayOf, toWeekId, formatWeekLabel, DAY_NAMES } from '../constants/days.js';
 import './PlannerLayout.css';
 
@@ -29,7 +29,7 @@ export default function PlannerLayout({
   weekId,
   weekDates, prevWeek, nextWeek,
   subjects, dayData, subjectsLoading, updateCell, removeSubject,
-  importCell, jumpToWeek, deleteWeek, wipeWeek,
+  importCell, jumpToWeek, deleteWeek,
   performSickDay, performUndoSickDay,
   loadWeekDataFrom,
   pdfImport,
@@ -44,16 +44,6 @@ export default function PlannerLayout({
   showSickDay, setShowSickDay,
   showUndoSickDay, setShowUndoSickDay,
 }) {
-  function handleToggleDone(subject) {
-    const cell = dayData[subject] ?? {};
-    updateCell(subject, day, { ...cell, done: !cell.done });
-  }
-
-  function handleToggleFlag(subject) {
-    const cell = dayData[subject] ?? {};
-    updateCell(subject, day, { ...cell, flag: !cell.flag });
-  }
-
   function handleMonthDaySelect(date) {
     jumpToWeek(toWeekId(getMondayOf(date)));
     setDay(date.getDay() - 1); // JS Mon=1 → dayIndex=0
@@ -86,13 +76,6 @@ export default function PlannerLayout({
     jumpToWeek, setStudent,
   });
 
-  async function onToggleDone(dayIndex, subject) {
-    const uid = user?.uid;
-    if (!uid) return;
-    const cell = await readCell(uid, weekId, student, dayIndex, subject);
-    await fbWriteCell(uid, weekId, student, subject, dayIndex, { done: !cell?.done });
-  }
-
   const allDayData = dayData['allday'] ?? null, hasAllDay = Boolean(allDayData);
   const [showSubjects, setShowSubjects] = useState(false);
   const {
@@ -114,6 +97,9 @@ export default function PlannerLayout({
   const multiSelect = useMultiSelect({
     uid: user?.uid, weekId, student, day, subjects: regularSubjects,
   });
+
+  const { handleToggleDone, handleToggleFlag, toggleCellDone } =
+    useCellToggles({ user, weekId, student, day, dayData, updateCell });
 
   return (
     <div className={`planner${isDesktop ? ' cwv-active' : ''}`}>
@@ -145,7 +131,7 @@ export default function PlannerLayout({
             onEditCell={(subject, di) => { setDay(di); setEditTarget({ subject, day: di }); }}
             onAddSubject={(di) => { setDay(di); setShowAddSubject(true); }}
             onMoveCell={handleMoveCell}
-            onToggleDone={onToggleDone}
+            onToggleDone={toggleCellDone}
           />
         )}
 
