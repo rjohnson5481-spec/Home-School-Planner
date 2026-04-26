@@ -56,6 +56,40 @@
   passes it as `onAwardPoints` to StudentDetailSheet,
   which no longer reads it. Harmless — delete on the
   next HomeTab touch.
+- Firebase data cleanup needed — 2026-04-26 backup
+  audit identified stale and orphaned Firestore
+  documents that should be deleted manually via the
+  Firebase console (not via code, for safety):
+  - Test cell "Billybob" subject in
+    `users/{uid}/weeks/2026-04-06/students/Malachi/days/1/subjects/Billybob`
+    (lesson text contains UI test prompts about edge
+    cases).
+  - Two future-dated test sick days for Orion at
+    `users/{uid}/sickDays/2026-09-14` and
+    `users/{uid}/sickDays/2026-09-17` (subjects don't
+    match current presets, leftover from sick-day
+    cascade testing).
+  - Test reportNote for Orion Q1 at
+    `users/{uid}/reportNotes/oWpzkNdCB1kvXGb8HMTk`
+    (notes field reads "Test notes").
+  - Orphaned grade at
+    `users/{uid}/grades/I9oVfEbkdSAN8DXXROjc` — points
+    to enrollment `5rq1SYtokiWaoUcGRTRT` which no
+    longer exists (cascading-delete artifact, invisible
+    in app UI).
+  - Optional cosmetic: Summer Break entry inside the
+    2025-2026 schoolYear runs 2026-07-20 to 2026-07-31
+    but the school year ends 2026-07-15. Either extend
+    the school year end date or delete the Summer
+    Break entry. Not breaking anything; nice-to-have.
+
+  After cleanup, export a fresh backup and re-audit to
+  confirm deletions and verify real data intact.
+
+  Do NOT delete the rewardTracker stale balance/log
+  mismatch — `firebase/backup.js` still round-trips
+  this collection per CLAUDE.md; leave for the next
+  backup-format revision.
 
 ## Next session must start with
 1. Read CLAUDE.md and HANDOFF.md
