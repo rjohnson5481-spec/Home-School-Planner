@@ -112,6 +112,19 @@ verify-before-carry-forward rule. Dropped one bullet:
 - "School Year — Coming Soon" placeholder row in
   SettingsTab is now redundant with the Compliance
   section. Remove on the next SettingsTab touch.
+- Calendar import does not allow more than one of the
+  same subject per day. If a student does extra work
+  (e.g., three Reading 3 lessons in one day for
+  accelerated remediation), the import flow rejects or
+  silently dedupes the duplicate cells. Need to allow
+  multiple cells with the same subject name on the
+  same day. Likely fix lives in the PDF import or
+  batch-add path — investigate `handleBatchAddSubject`
+  in `usePlannerHelpers` and the `importCell` write
+  logic (which probably uses subject name as the cell
+  key). May require a key-shape change from
+  `{subject}` to `{subject}-{instance}` or similar to
+  allow duplicates without overwriting.
 - Phase 3 Session 3 next — compliance dashboard on
   the Home tab and Settings. Reads
   `subscribeSchoolDays` over the active school year
