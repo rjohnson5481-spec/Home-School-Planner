@@ -1,14 +1,20 @@
 import { useState, useEffect, useRef } from 'react';
 import { subscribeCompliance, saveCompliance } from '../../../firebase/compliance.js';
 import { COMPLIANCE_DEFAULTS } from '../../../constants/compliance.js';
-import './ComplianceSection.css';
+import './ComplianceSheet.css';
 
 const SAVE_DEBOUNCE_MS = 500;
 
-export default function ComplianceSection({ uid }) {
+// Bottom sheet for configuring School Days Compliance — pattern matches
+// CourseCatalogSheet exactly. Open/close state lives in AcademicRecordsTab.
+//
+// Props:
+//   open    — boolean, parent unmounts on false
+//   onClose — () => void, dismisses the sheet
+//   uid     — Firebase auth uid for the compliance settings doc
+export default function ComplianceSheet({ open, onClose, uid }) {
   const [settings, setSettings] = useState(COMPLIANCE_DEFAULTS);
   const [dirty, setDirty]       = useState(null);
-  const [expanded, setExpanded] = useState(false);
   const saveTimer               = useRef(null);
 
   useEffect(() => {
@@ -34,15 +40,19 @@ export default function ComplianceSection({ uid }) {
     setDirty(next);
   }
 
+  if (!open) return null;
+
   return (
-    <>
-      <button className="ar-action-btn" onClick={() => setExpanded(e => !e)}
-        aria-expanded={expanded} aria-label="Toggle compliance settings">
-        <span>🛡️ Track Compliance</span>
-        <span>{expanded ? '▾' : '›'}</span>
-      </button>
-      {expanded && (
-        <div className="cs-panel">
+    <div className="cs-sheet-overlay" onClick={onClose}>
+      <div className="cs-sheet" onClick={e => e.stopPropagation()}>
+        <div className="cs-sheet-handle" aria-hidden="true" />
+
+        <header className="cs-sheet-header">
+          <h2 className="cs-sheet-title">Track Compliance</h2>
+          <button className="cs-sheet-close" onClick={onClose} aria-label="Close">✕</button>
+        </header>
+
+        <div className="cs-sheet-body">
           <p className="sc-helper">
             Track required school days and hours against your state's
             requirements. Both metrics are independent — enable either or both.
@@ -119,7 +129,7 @@ export default function ComplianceSection({ uid }) {
             )}
           </div>
         </div>
-      )}
-    </>
+      </div>
+    </div>
   );
 }

@@ -1,0 +1,121 @@
+/* Compliance bottom sheet — pattern matches CourseCatalogSheet (cc-*).
+   Stacking: cs-sheet-overlay z-index 300, same layer as Course Catalog. */
+
+/* ── Backdrop ── */
+.cs-sheet-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 300;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+/* ── Sheet panel ── */
+.cs-sheet {
+  width: 100%;
+  max-width: 100%;
+  max-height: 85vh;
+  background: var(--bg-base);
+  border-radius: 20px 20px 0 0;
+  padding-bottom: env(safe-area-inset-bottom, 16px);
+  animation: cs-sheet-up 0.3s ease;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+@keyframes cs-sheet-up {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+
+.cs-sheet-handle {
+  width: 40px;
+  height: 5px;
+  background: #d4cfc8;
+  border-radius: 3px;
+  margin: 10px auto 0;
+  flex-shrink: 0;
+}
+
+/* ── Header — hardcoded #22252e per design system; never a CSS var ── */
+.cs-sheet-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px 14px;
+  background: #22252e;
+  flex-shrink: 0;
+}
+.cs-sheet-title { font-size: 15px; font-weight: 600; color: #fff; margin: 0; }
+.cs-sheet-close {
+  width: 28px; height: 28px;
+  background: rgba(255, 255, 255, .12);
+  border: none; border-radius: 50%;
+  color: rgba(255, 255, 255, .8);
+  font-size: 13px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0; transition: background 0.15s;
+}
+.cs-sheet-close:hover { background: rgba(255, 255, 255, .22); color: #fff; }
+
+/* ── Body — scrollable ── */
+.cs-sheet-body { padding: 16px 20px; overflow-y: auto; flex: 1; }
+
+/* ── Form-field classes used inside the sheet body (preserved from
+   the prior inline-collapse implementation; carried over unchanged). ── */
+.sc-helper {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: 0 0 10px;
+  line-height: 1.4;
+}
+
+.sc-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px 14px 14px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-surface);
+}
+.sc-fields:last-child { border-bottom: none; }
+
+.sc-field { display: flex; flex-direction: column; gap: 4px; }
+
+.sc-field-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.sc-field-help {
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.sc-input {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--text-primary);
+  outline: none;
+  width: 120px;
+  max-width: 100%;
+  transition: border-color 0.15s;
+}
+.sc-input:focus { border-color: var(--gold); }
+
+@media (min-width: 400px) and (max-width: 809px) {
+  .cs-sheet-title { font-size: 17px; }
+  .cs-sheet-body  { padding: 20px; }
+  .sc-helper      { font-size: 13px; }
+  .sc-field-label { font-size: 13px; }
+  .sc-field-help  { font-size: 12px; }
+  .sc-input       { font-size: 15px; padding: 8px 10px; width: 140px; }
+}
