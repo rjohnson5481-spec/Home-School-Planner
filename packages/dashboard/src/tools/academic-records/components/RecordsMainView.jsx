@@ -101,8 +101,6 @@ export default function RecordsMainView({
         </div>
       </div>
 
-      <ComplianceSection uid={uid} />
-
       <p className="ar-section-label">Grades — {selectedStudent}</p>
 
       {studentEnrollments.length === 0 ? (
@@ -150,6 +148,7 @@ export default function RecordsMainView({
       <p className="ar-section-label">Quick Actions</p>
 
       <div className="ar-quick-actions">
+        <ComplianceSection uid={uid} />
         <button className="ar-action-btn" onClick={onCatalogOpen}>
           <span>📚 Manage Course Catalog</span><span>›</span>
         </button>
