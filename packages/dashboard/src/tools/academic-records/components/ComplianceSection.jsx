@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
-import { subscribeCompliance, saveCompliance } from '../firebase/compliance.js';
-import { COMPLIANCE_DEFAULTS } from '../constants/compliance.js';
-import './SettingsCompliance.css';
+import { subscribeCompliance, saveCompliance } from '../../../firebase/compliance.js';
+import { COMPLIANCE_DEFAULTS } from '../../../constants/compliance.js';
+import './ComplianceSection.css';
 
 const SAVE_DEBOUNCE_MS = 500;
 
-export default function SettingsCompliance({ uid }) {
+export default function ComplianceSection({ uid }) {
   const [settings, setSettings] = useState(COMPLIANCE_DEFAULTS);
   const [dirty, setDirty]       = useState(null);
   const saveTimer               = useRef(null);

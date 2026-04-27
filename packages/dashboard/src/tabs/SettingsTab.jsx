@@ -6,7 +6,6 @@ import './SettingsTab.css';
 import './SettingsRow.css';
 import './SettingsSubjects.css';
 import DataBackupSection from './DataBackupSection.jsx';
-import SettingsCompliance from './SettingsCompliance.jsx';
 
 const STUDENT_EMOJI = { Orion: '😎', Malachi: '🐼' };
 
@@ -153,8 +152,6 @@ export default function SettingsTab({ user, colorMode, onToggleDarkMode }) {
               </div>
             </div>
           </section>
-
-          <SettingsCompliance uid={uid} />
         </div>
 
         <div className="st-col">

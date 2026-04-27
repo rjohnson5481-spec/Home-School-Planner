@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { GRADING_TYPE_LETTER } from '../constants/academics.js';
+import ComplianceSection from './ComplianceSection.jsx';
 
 // Pure presentation for the Academic Records tab body.
 // All data is owned by the parent (AcademicRecordsTab) and passed in as
@@ -34,6 +35,7 @@ function todayStr() {
 }
 
 export default function RecordsMainView({
+  uid,
   students, selectedStudent, setSelectedStudent,
   selectedQuarterId, setSelectedQuarterId,
   summary, courses, grades,
@@ -98,6 +100,8 @@ export default function RecordsMainView({
           <div className="ar-stat-sub">{yearLabel}</div>
         </div>
       </div>
+
+      <ComplianceSection uid={uid} />
 
       <p className="ar-section-label">Grades — {selectedStudent}</p>
 

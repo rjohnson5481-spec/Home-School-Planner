@@ -150,6 +150,7 @@ export default function AcademicRecordsTab() {
   return (
     <div className="ar-tab">
       <RecordsMainView
+        uid={uid}
         students={students} selectedStudent={selectedStudent} setSelectedStudent={setSelectedStudent}
         selectedQuarterId={selectedQuarterId} setSelectedQuarterId={setSelectedQuarterId}
         summary={summary} courses={courses} grades={grades}
