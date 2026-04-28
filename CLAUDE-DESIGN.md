@@ -12,7 +12,7 @@ Do not read for logic-only sessions.
 - Primary accent is gold #c9a84c — never green, never blue
 - Header/sidebar/bottom nav background is always #22252e hardcoded — never a CSS variable
 - Card text uses var(--text-primary) NOT var(--ink)
-- Desktop breakpoint 1024px — never lower
+- Desktop breakpoint 810px — never lower
 
 ---
 
@@ -95,7 +95,7 @@ When a hardcoded color must only apply in one mode, scope with [data-mode="dark"
 
 ## Layout
 - Mobile: planner header is 132px fixed 3-row stack (#22252e). Shell has BottomNav as 56px fixed bottom bar.
-- Desktop (≥1024px): planner header display:none. Shell's 200px fixed left sidebar owns branding + nav + sign-out + Student selector. Content column has margin-left: 200px.
+- Desktop (≥810px): planner header display:none. Shell's 200px fixed left sidebar owns branding + nav + sign-out + Student selector. Content column has margin-left: 200px.
 - All chrome backgrounds are #22252e hardcoded — never changes between light/dark.
 
 ---
@@ -127,13 +127,13 @@ When a hardcoded color must only apply in one mode, scope with [data-mode="dark"
 ## Bottom nav / Sidebar
 Heights (responsive):
 - base (<400px): 56px; icon 18px; label 9px
-- ≥400px and ≤1023px: 68px; icon 24px; label 12px
-- ≥1024px: collapses to 200px left sidebar (height: 100vh)
+- ≥400px and ≤809px: 68px; icon 24px; label 12px
+- ≥810px: collapses to 200px left sidebar (height: 100vh)
 
 - Background: always #22252e — never changes in dark mode
 - Active tab: icon + label #e8c97a, icon pill rgba(201,168,76,0.15) background
 - Inactive tab: rgba(255,255,255,0.45)
-- Large phone band ALWAYS bounded: (min-width: 400px) and (max-width: 1023px)
+- Large phone band ALWAYS bounded: (min-width: 400px) and (max-width: 809px)
 
 Desktop sidebar spec:
 - Width 200px, fixed left, full viewport height, #22252e background
@@ -214,3 +214,13 @@ Desktop sidebar spec:
 Auto-assigned via hash of subject name — 8 color palette, same subject always same color.
 Colors: red, blue, green, orange, purple, teal, pink, gold.
 No setup needed. Done cards are faded with strikethrough.
+
+---
+
+## Quick Actions row pattern (Records tab)
+- Modal sheet pattern (NOT inline expand). Slide-up sheet with dark header bar.
+- Reference implementations: CourseCatalogSheet, ComplianceSheet (matches CourseCatalogSheet exactly).
+- Row in Quick Actions: button.ar-action-btn — icon emoji + label + chevron `›`.
+- Tap → sheet slides up. Sheet header is #22252e dark bar with title + X close button.
+- Sheet body: standard light/dark surface with form controls or list content.
+- Open/close state managed by parent (typically AcademicRecordsTab via useState).
