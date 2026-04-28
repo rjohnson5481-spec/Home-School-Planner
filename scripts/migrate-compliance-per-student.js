@@ -19,21 +19,31 @@ console.log(`Mode: ${DRY_RUN ? 'DRY RUN (no writes)' : 'LIVE (writes will happen
 console.log(``);
 
 async function migrate() {
-  // Iterate every user (forward-compatible for Phase 4 multi-family).
-  // Today there is one user; the script handles N >= 0 cleanly.
-  const usersSnapshot = await db.collection('users').get();
+  // Discover users via collectionGroup('settings'). Per CLAUDE.md the
+  // users/{uid} parent doc does NOT exist as a Firestore document, so
+  // db.collection('users').get() returns nothing. Instead we walk the
+  // settings subcollection and derive uid from each doc's path.
+  // Forward-compatible for Phase 4 multi-family — handles N >= 0 cleanly.
+  const settingsGroup = await db.collectionGroup('settings').get();
+  const uidSet = new Set();
+  for (const settingsDoc of settingsGroup.docs) {
+    // Path shape: users/{uid}/settings/{docName}
+    const segments = settingsDoc.ref.path.split('/');
+    if (segments.length >= 2 && segments[0] === 'users') {
+      uidSet.add(segments[1]);
+    }
+  }
+  const uids = Array.from(uidSet);
+  console.log(`Found ${uids.length} user(s) (discovered via collectionGroup).`);
 
-  console.log(`Found ${usersSnapshot.size} user(s).`);
-
-  if (usersSnapshot.size === 0) {
+  if (uids.length === 0) {
     console.log('No users to migrate. Exiting.');
     return;
   }
 
   let totalWrites = 0;
 
-  for (const userDoc of usersSnapshot.docs) {
-    const uid = userDoc.id;
+  for (const uid of uids) {
     console.log(`\n--- Processing user: ${uid} ---`);
 
     // 1. Read student names.
