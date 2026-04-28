@@ -1,8 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { subscribeCompliance, saveCompliance } from '../../../firebase/compliance.js';
 import { COMPLIANCE_DEFAULTS } from '../../../constants/compliance.js';
-import { useComplianceSummary } from '../../../hooks/useComplianceSummary.js';
-import ComplianceCard from '../../../components/ComplianceCard.jsx';
 import './ComplianceSheet.css';
 
 const SAVE_DEBOUNCE_MS = 500;
@@ -18,7 +16,6 @@ export default function ComplianceSheet({ open, onClose, uid }) {
   const [settings, setSettings] = useState(COMPLIANCE_DEFAULTS);
   const [dirty, setDirty]       = useState(null);
   const saveTimer               = useRef(null);
-  const summary                 = useComplianceSummary(uid);
 
   useEffect(() => {
     if (!uid) return;
@@ -56,7 +53,6 @@ export default function ComplianceSheet({ open, onClose, uid }) {
         </header>
 
         <div className="cs-sheet-body">
-          <ComplianceCard summary={summary} variant="sheet" />
           <p className="sc-helper">
             Track required school days and hours against your state's
             requirements. Both metrics are independent — enable either or both.
