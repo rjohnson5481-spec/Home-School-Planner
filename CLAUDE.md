@@ -1,10 +1,8 @@
 # CLAUDE.md — Iron & Light Johnson Academy Homeschool Tools
-Current version: v0.32.1 — milestone: Phase 3 — School Days compliance Sessions 1–4 + 4.1 migration (per-student data shape)
+Current version: v0.32.1 — milestone: Phase 3 mid-rework (per-student data shape migrated, app code rework Sessions 4.2–5 pending)
 
 ## What this repo is
-A monorepo housing all digital tools for Iron & Light Johnson Academy.
-This is a growing toolset — new tools will be added over time.
-Every tool shares the same branding, design system, and Firebase project.
+A monorepo housing all digital tools for Iron & Light Johnson Academy. Growing toolset; new tools added over time. Every tool shares branding, design system, and Firebase project.
 
 ## The Johnson Family
 - Rob (dad, homeschool teacher, MDiv student)
@@ -13,50 +11,39 @@ Every tool shares the same branding, design system, and Firebase project.
 
 ## Repo structure
 /
-├── CLAUDE.md                  ← you are here, update after every session
-├── CLAUDE-DESIGN.md           ← Ink & Gold design system (read for UI/CSS sessions only)
-├── CLAUDE-HISTORY.md          ← phase history, migration notes (read only when requested)
+├── CLAUDE.md                  ← update after every session
+├── CLAUDE-DESIGN.md           ← Ink & Gold (UI/CSS sessions only)
+├── CLAUDE-HISTORY.md          ← phase history (only when requested)
 ├── HANDOFF.md                 ← overwrite at end of every session
 ├── scratch.js                 ← never committed, complex logic sandbox
-├── netlify.toml               ← global Netlify config
+├── netlify.toml
 ├── packages/
 │   ├── shared/                ← design system, Firebase init, auth, components
-│   └── dashboard/             ← unified app shell; all tools live in src/tools/
+│   └── dashboard/             ← unified app shell; tools live in src/tools/
 
-Root `package.json` workspaces: ["packages/shared", "packages/dashboard"].
-`packages/planner` and `packages/reward-tracker` were retired earlier — the planner
-now lives at `packages/dashboard/src/tools/planner/` and the reward tracker was
-removed entirely in v0.30.0. `packages/te-extractor` was also removed in v0.30.0.
+Workspaces: ["packages/shared", "packages/dashboard"]. Reward tracker, te-extractor, and standalone planner package were retired in/before v0.30.0.
 
 ---
 
-## Stack (all tools)
-- React + Vite
-- Firebase Auth — Google sign-in, single family account, shared across tools
-- Firebase Firestore — each tool uses its own collection namespace
-- Firebase Storage — Blaze plan, used for saved report PDFs
-- Netlify — single site, all tools deployed together, auto-deploy on push to main
-- vite-plugin-pwa — dashboard is the installable PWA entry point
-- @dnd-kit/core — drag-and-drop only, never hand-roll it
-- pdf-lib — browser-side PDF generation (exact version pinned)
-- @netlify/functions 2.8.1 — scheduled backup function
-- @netlify/blobs 8.1.0 — backup storage
-- firebase-admin 12.1.0 — server-side Firestore reads in scheduled backup
+## Stack
+- React + Vite, Firebase (Auth + Firestore + Storage), Netlify
+- vite-plugin-pwa (dashboard is PWA entry point)
+- @dnd-kit/core (drag-and-drop only, never hand-roll)
+- pdf-lib (browser-side PDF generation)
+- @netlify/functions 2.8.1, @netlify/blobs 8.1.0, firebase-admin 12.1.0
 
-## Locked dependencies — do not upgrade or swap without asking Rob
-- firebase, @dnd-kit/core, vite-plugin-pwa, react, react-dom, pdf-lib
-All package.json entries use exact versions — no ^ or ~ prefixes.
+Locked dependencies — never upgrade without asking Rob: firebase, @dnd-kit/core, vite-plugin-pwa, react, react-dom, pdf-lib. All package.json entries use exact versions — no ^ or ~.
 
 ---
 
 ## Deployment
-- Host: Netlify, connected to GitHub repo
-- Primary URL: `homeschool.grasphislove.com` (custom domain, live as of 2026-04-15)
-- Secondary URL: `ironandlight.netlify.app` (Netlify default, fallback)
-- App shell at root `/` — serves the dashboard (all tools as tabs)
+- Host: Netlify, connected to GitHub
+- Primary: homeschool.grasphislove.com (live since 2026-04-15)
+- Secondary: ironandlight.netlify.app
+- App shell at root `/` — serves dashboard
 - NOT GitHub Pages
 
-## netlify.toml
+netlify.toml:
 [build]
   command = "npm install && npm run build"
   publish = "dist"
@@ -71,31 +58,18 @@ All package.json entries use exact versions — no ^ or ~ prefixes.
   to = "/index.html"
   status = 200
 
-Order is required — never reorder these blocks.
-No base directory — build runs from repo root via workspaces.
+Order required — never reorder. No base directory; build runs from repo root via workspaces.
 
 ---
 
 ## Environment variables (Netlify dashboard only — never in code)
-- ANTHROPIC_API_KEY — Netlify Functions only (parse-schedule), never client-side
-- VITE_ANTHROPIC_API_KEY — CalendarImportSheet + CurriculumImportSheet (intentional exception)
-- VITE_FIREBASE_API_KEY
-- VITE_FIREBASE_AUTH_DOMAIN
-- VITE_FIREBASE_PROJECT_ID
-- VITE_FIREBASE_APP_ID
+- ANTHROPIC_API_KEY — Netlify Functions only
+- VITE_ANTHROPIC_API_KEY — CalendarImportSheet + CurriculumImportSheet (intentional exception; Netlify Function proxy hit 60s timeouts)
+- VITE_FIREBASE_API_KEY, VITE_FIREBASE_AUTH_DOMAIN, VITE_FIREBASE_PROJECT_ID, VITE_FIREBASE_APP_ID
 - VITE_FIREBASE_STORAGE_BUCKET — homeschool-tools-ff73c.firebasestorage.app
-- FIREBASE_SERVICE_ACCOUNT — scheduled-backup.js (already set in Netlify)
+- FIREBASE_SERVICE_ACCOUNT — scheduled-backup.js
 
-## Anthropic API pattern
-All Anthropic calls go through Netlify Functions — with intentional exceptions
-(the two academic-records import sheets still call api.anthropic.com directly
-from the client using VITE_ANTHROPIC_API_KEY because the Netlify Function proxy
-caused 60 s gateway timeouts).
-Current functions:
-- netlify/functions/parse-schedule.js (planner PDF import)
-  Client calls: POST /api/parse-schedule with { file: base64, mediaType }
-  Returns: application/json { student, weekId, days }
-- netlify/functions/scheduled-backup.js (runs every 6 hours, saves to Netlify Blobs)
+Anthropic functions: parse-schedule.js (POST /api/parse-schedule, returns {student, weekId, days}), scheduled-backup.js (every 6 hours → Netlify Blobs).
 
 ---
 
@@ -103,43 +77,47 @@ Current functions:
 
 ### Planner
 /users/{uid}/weeks/{weekId}/students/{studentName}/days/{0-4}/subjects/{subjectName}
-  → { lesson: string, note: string, done: boolean, flag: boolean }
-  Special key: 'allday' for All Day Events (NOT __allday__ — Firestore rejects double-underscore)
+  → { lesson, note, done, flag }
+  Special key: 'allday' (NOT __allday__ — Firestore rejects double-underscore)
 
-/users/{uid}/sickDays/{dateString}
-  → { student: string, date: string, subjectsShifted: string[] }
+/users/{uid}/sickDays/{dateString}              → { student, date, subjectsShifted }
+/users/{uid}/settings/students                  → { names: string[] }
+/users/{uid}/subjectPresets/{studentName}       → { subjects: string[] }
 
-/users/{uid}/settings/students
-  → { names: string[] }  ← onSnapshot in useSettings (real-time)
+weekId / dateString format: "YYYY-MM-DD" (weekId = Monday). Always use mondayWeekId() from constants/days.js. dayIndex: 0=Mon … 4=Fri.
 
-/users/{uid}/subjectPresets/{studentName}
-  → { subjects: string[] }
+CRITICAL: users/{uid} parent doc does NOT exist as a Firestore document. Use collectionGroup('subjects') for traversal from uid level. Use collectionGroup('settings') to discover users.
 
-weekId / dateString format: "YYYY-MM-DD" (weekId = Monday of that week)
-Always use mondayWeekId() from constants/days.js — never write a raw date string.
-dayIndex: 0=Mon, 1=Tue, 2=Wed, 3=Thu, 4=Fri
+### Compliance (Phase 3)
+/users/{uid}/settings/compliance
+  → { daysEnabled, hoursEnabled, startingDays, startingHours,
+      requiredDays, requiredHours,    // DEPRECATED top-level — preserved through Session 4.4, deleted then
+      requiredByStudent: { [name]: { requiredDays, requiredHours } }
+    }
 
-CRITICAL: uid document does NOT exist in Firestore — only subcollections exist.
-Use collectionGroup('subjects') for any query traversing from uid level.
+/users/{uid}/schoolDays/{dateString}
+  → { hoursByStudent: { [name]: number } }
+
+Compliance is per-student (required values, hours logging, day completion counts). Starting values are family-wide (entered once, seed both students).
 
 ### Academic Records
-/users/{uid}/schoolYears/{yearId}           → { label, startDate, endDate }
-/users/{uid}/schoolYears/{yearId}/quarters  → { label, startDate, endDate }
-/users/{uid}/schoolYears/{yearId}/breaks    → { label, startDate, endDate }
-/users/{uid}/courses/{courseId}             → { name, curriculum, gradingType }
-/users/{uid}/enrollments/{enrollmentId}     → { courseId, student, yearId, notes, syncPlanner, gradeLevel }
-/users/{uid}/grades/{gradeId}               → { enrollmentId, quarterId, grade, percent }
-/users/{uid}/reportNotes/{noteId}           → { student, quarterId, notes }
-/users/{uid}/savedReports/{reportId}        → { student, periodLabel, yearLabel, generatedAt, storageUrl, notes, includeToggles }
-/users/{uid}/activities/{activityId}        → { student, name, startDate, endDate, ongoing, notes }
+/users/{uid}/schoolYears/{yearId}            → { label, startDate, endDate }
+/users/{uid}/schoolYears/{yearId}/quarters   → { label, startDate, endDate }
+/users/{uid}/schoolYears/{yearId}/breaks     → { label, startDate, endDate }
+/users/{uid}/courses/{courseId}              → { name, curriculum, gradingType }
+/users/{uid}/enrollments/{enrollmentId}      → { courseId, student, yearId, notes, syncPlanner, gradeLevel }
+/users/{uid}/grades/{gradeId}                → { enrollmentId, quarterId, grade, percent }
+/users/{uid}/reportNotes/{noteId}            → { student, quarterId, notes }
+/users/{uid}/savedReports/{reportId}         → { student, periodLabel, yearLabel, generatedAt, storageUrl, notes, includeToggles }
+/users/{uid}/activities/{activityId}         → { student, name, startDate, endDate, ongoing, notes }
 
 Firebase Storage: users/{uid}/reports/{reportId}.pdf
 
 ### Firestore Security Rules
-Two rules — both required, never remove either:
 match /users/{userId}/{document=**} { allow read, write: if request.auth.uid == userId; }
 match /{path=**}/subjects/{subjectId} { allow read: if request.auth != null; }
-The second rule is required for collectionGroup backup export.
+
+R2 (the second rule) is auth-only, NOT uid-scoped. Phase 4 launch blocker — see roadmap. Never remove either rule.
 
 ---
 
@@ -147,202 +125,196 @@ The second rule is required for collectionGroup backup export.
 packages/dashboard/src/
 ├── App.jsx                    ← auth + activeTab + plannerStudent + colorMode + useSettings
 ├── components/
-│   ├── BottomNav.jsx          ← mobile bottom bar + desktop 200px sidebar
+│   ├── BottomNav.jsx          ← mobile bottom bar / desktop 200px sidebar
 │   └── SignIn.jsx
 ├── tabs/
-│   ├── HomeTab.jsx            ← per-student cards, tappable mobile / expanded desktop
+│   ├── HomeTab.jsx
 │   ├── PlannerTab.jsx
 │   ├── AcademicRecordsTab.jsx
 │   ├── SettingsTab.jsx
-│   └── DataBackupSection.jsx  ← Export / Restore from Backup / Factory Reset Restore
+│   └── DataBackupSection.jsx
 ├── hooks/
 │   ├── useDarkMode.js
-│   └── useHomeSummary.js
+│   ├── useHomeSummary.js
+│   └── useComplianceSummary.js  ← Phase 3 (reworked in Session 4.3)
 ├── firebase/
-│   ├── backup.js              ← exportAllData, generateRestoreDiff, applyRestoreDiff, importFullRestore
-│   ├── RestoreDiffSheet.jsx   ← routes desktop→RestoreDiffCalendar / mobile→accordion
-│   ├── RestoreDiffSheet.css
-│   ├── RestoreDiffCalendar.jsx ← desktop calendar diff view
-│   └── RestoreDiffCalendar.css
+│   ├── backup.js              ← export, diff restore, factory reset
+│   ├── compliance.js          ← subscribeCompliance, saveCompliance, subscribeSchoolDays
+│   └── RestoreDiff*.{jsx,css}
 └── tools/
     ├── planner/
-    │   ├── components/
-    │   │   ├── PlannerLayout.jsx        ← 273 lines, under 280 watch line
-    │   │   ├── PlannerActionBar.jsx
-    │   │   ├── SickDayManager.jsx       ← renders the 3 sick-day sheets
-    │   │   ├── SickDaySheet.jsx
-    │   │   ├── UndoSickSheet.jsx
-    │   │   ├── FridayComingSoonSheet.jsx ← pre-confirm modal when Friday has lessons
-    │   │   ├── MultiSelectBar.jsx       ← mobile multi-select action bar
-    │   │   ├── SubjectCard.jsx          ← long-press enters select mode
-    │   │   ├── CalendarWeekView.jsx     ← desktop calendar grid
-    │   │   ├── UploadSheet.jsx
-    │   │   ├── ImportDiffPreview.jsx
-    │   │   └── [other sheets]
-    │   ├── hooks/
-    │   │   ├── useWeek.js
-    │   │   ├── useSubjects.js           ← cell data only — no sick-day listener
-    │   │   ├── useSickDay.js            ← sole owner of sick-day Firestore listener
-    │   │   ├── useMultiSelect.js        ← mobile multi-select state + actions
-    │   │   ├── usePdfImport.js
-    │   │   ├── usePlannerHelpers.js     ← PDF helpers + handleMoveCell
-    │   │   ├── usePlannerUI.js
-    │   │   └── useSettings.js
-    │   └── constants/
-    │       ├── days.js                  ← mondayWeekId() lives here
-    │       └── [other constants]
+    │   ├── components/        ← PlannerLayout, SubjectCard, CalendarWeekView, sheets, HoursInputRow
+    │   ├── hooks/             ← useWeek, useSubjects, useSickDay, useMultiSelect, useCellToggles, useCompliance, usePdfImport, usePlannerHelpers, usePlannerUI, useSettings
+    │   └── constants/         ← days.js (mondayWeekId), compliance.js (paths + COMPLIANCE_DEFAULTS)
     └── academic-records/
+        └── components/        ← RecordsMainView, ComplianceSheet, other Records sheets
 
 netlify/functions/
-├── parse-schedule.js          ← PDF import Anthropic proxy
-└── scheduled-backup.js        ← 6-hour auto backup to Netlify Blobs
+├── parse-schedule.js
+└── scheduled-backup.js
 
 ---
 
-## Responsive breakpoints (canonical)
-- `<400px` — small phone. Compact nav 56px.
-- `400–809px` — large phone (Galaxy S25 Ultra etc). Scaled-up fonts/spacing/nav.
-- `≥810px` — desktop. 200px fixed sidebar, CalendarWeekView in planner.
+## Responsive breakpoints
+- `<400px` — small phone, 56px nav
+- `400–809px` — large phone (S25 Ultra), scaled fonts/nav
+- `≥810px` — desktop, 200px fixed sidebar, CalendarWeekView
 
-Desktop breakpoint is always 810px — never lower.
-Large phone band is always bounded: `(min-width: 400px) and (max-width: 809px)` — never bare min-width: 400px.
-Desktop changes are always additive via @media (min-width: 810px) — never modify base mobile styles.
+Desktop is always 810px — never lower. Large phone band always bounded `(min-width: 400px) and (max-width: 809px)` — never bare min-width: 400px. Desktop changes are always additive via @media (min-width: 810px) — never modify base mobile.
 
 ---
 
 ## Tools status (v0.32.1)
-- shared            → ✅ Complete
-- dashboard shell   → ✅ Complete — 4-tab nav (Home / Planner / Records / Settings), dynamic students, dark mode
-- Home Tab          → ✅ Complete — per-student cards, tappable/expanded, attendance
-- Planner           → ✅ Complete — mobile DayStrip + desktop CalendarWeekView, drag-and-drop, sick day (auto-writes "Sick Day" All Day Event on confirm), mobile multi-select
-- Academic Records  → ✅ Complete — full Phase 2 feature
-- Backup            → ✅ Complete — Export / Restore from Backup (diff) / Factory Reset / Auto 6hr
-- Month view        → 🔒 Queued — also unlocks improved Friday sick-day cascading
-- School Days       → 🔒 Phase 3
-- Reward Tracker    → 🗑 Removed in v0.30.0
-- TE Extractor      → 🗑 Removed in v0.30.0
-
----
-
-## Verification pending
-- Netlify Blobs auto-backup is running — still need to verify a backup actually appears in the Blobs store after a scheduled run.
+- shared, dashboard shell, Home Tab, Planner, Academic Records, Backup → ✅ Complete
+- School Days → 🔧 Phase 3 mid-rework (data shape migrated; app code rework Sessions 4.2–5 pending)
+- Month view → 🔒 Queued for Phase 5
+- Reward Tracker, TE Extractor → 🗑 Removed in v0.30.0
 
 ---
 
 ## Roadmap
 
-### Phase 3 — School Days
-- School Days compliance — user-entered days/hours requirement, hours toggle in settings, hours input per day in planner when enabled.
+### Phase 3 — School Days compliance (mid-rework)
+Per-student tracking of state-required days and hours. ND state law requires per-student tracking; family-wide design from Sessions 1–4 is being rolled back.
 
-### Phase 4 — Multi-family / brand-agnostic shell
-- Strip hardcoded "Iron & Light Johnson Academy" references — brand-agnostic shell.
-- Multi-family support — student profiles migration (currently students stored as plain name strings).
-- Stripe integration + Free/Pro feature gating.
-- Admin dashboard (Rob-only access) — user management, revenue, manual override, usage stats.
-- 50-state compliance database.
+Sessions complete: 1 settings, 2 hours input (family-wide; superseded), 3 Records relocation, 3.6 modal sheet, 4 dashboard (family-wide; KNOWN-WRONG), 4.1 per-student data migration.
+
+Sessions remaining:
+- 4.2 rollback Session 4. Delete ComplianceCard, pendingRecordsAction, listener useEffect, Home/Sheet renders. Keep useComplianceSummary.
+- 4.3 rework useComplianceSummary to return per-student maps.
+- 4.4 per-student required-value inputs in ComplianceSheet. Delete old top-level requiredDays/requiredHours from Firestore (contract phase of expand-then-contract).
+- 4.5 planner hours input writes per-student data via schoolDays/{date}.hoursByStudent[student].
+- 5 Records Attendance card + Home per-student progress sources from compliance instead of calendar math when daysEnabled.
+- 6 deferred: planned days view.
+
+### Phase 4 — Multi-family launch readiness
+Launch blockers (required before any external testing family signs in):
+1. Tighten Firestore R2 rule to uid-scope subjects reads.
+2. Add `uid` field to subject cell writes + backfill migration.
+3. Rewrite useComplianceSummary collectionGroup query to filter on uid.
+
+Phase 4 broader scope: brand-agnostic shell, student profiles migration (currently name strings), Stripe + Free/Pro gating, admin dashboard, 50-state compliance database.
 
 ### Phase 5 — Calendar + Public Launch Polish
-- Month view — full grid with navigation, unlocks the proper Friday sick-day cascade fix.
-- Multi-week lesson import.
-- ICS import for breaks/holidays.
-- Event & appointment planning — non-lesson calendar items.
-- Offline support — service worker caching.
-- Privacy policy page.
-- Google Play Store — TWA wrapper.
-- iOS App Store — Median.co wrapper (after Google Play is live).
+Month view (unlocks Friday sick-day cascade fix), multi-week lesson import, ICS import, event/appointment planning, offline service worker, privacy policy, Google Play TWA, iOS Median.co wrapper.
 
 ---
 
 ## File size rules
-- Hard limit: 300 lines per source file (JSX / JS / CSS)
-- CLAUDE.md, CLAUDE-DESIGN.md, CLAUDE-HISTORY.md are all exempt
-- Target: under 250 lines per source file
-- If a file approaches 250 lines, stop and split before continuing
+- Hard limit: 300 lines per source file (JSX/JS/CSS)
+- CLAUDE.md, CLAUDE-DESIGN.md, CLAUDE-HISTORY.md exempt
+- Target: under 250 lines; if approaching, stop and split before continuing
 - One responsibility per file
 - Components never contain business logic — extract to hooks/
 - Firebase calls never live in components — extract to firebase/
 
 ## Constants rule
-All string literals, Firestore path builders, day labels, and subject lists live in constants/.
-Never hardcode these values in components or hooks.
+All string literals, Firestore path builders, day labels, subject lists live in constants/. Never hardcode in components or hooks.
 
 ## Complex logic rule
-Any non-trivial logic gets prototyped in scratch.js first. Never committed.
+Non-trivial logic prototypes in scratch.js first. Never committed.
 
-## Build order — always follow this
+## Build order
 1. Read packages/shared before building anything
 2. Never duplicate branding, tokens, Firebase init, or auth
-3. Firebase + Auth layer before any UI
+3. Firebase + Auth before any UI
 4. Firestore read/write layer before components
-5. Constants files before any component that needs them
+5. Constants before components that need them
 6. Stop and confirm with Rob before starting a new phase or new tool
 
 ---
 
 ## Session discipline
-- Always read the relevant file before editing it — never assume file contents
-- Maximum 3 files changed per prompt — if more needed, break into steps
-- Do not build and debug in the same prompt
-- Never work on top of already-broken code — revert and restart clean
-- New feature = commit the current working state first
-- Start a fresh Claude Code chat for every new session
+- Always read the file before editing it
+- Maximum 3 files per code prompt; break larger work into steps
+- Don't build and debug in the same prompt
+- Never work on top of broken code — revert and restart clean
+- New feature = commit working state first
+- Fresh Claude Code chat for every new session
 
-## End of every session — required
-1. Update CLAUDE.md with any new decisions made this session
-2. Overwrite HANDOFF.md using the lean format (see prompt guide)
-3. Before carrying forward any "What is broken or incomplete" bullet from the prior HANDOFF, verify the described condition still exists in current code. If the condition has been resolved, drop the bullet rather than propagating it. Do not preserve stale bullets "just in case."
+## HANDOFF separation rule
+Substantial sessions (4+ files or 5+ commits) end at "version bump pushed." HANDOFF rewrite runs as a separate prompt afterward. Smaller sessions keep HANDOFF inline.
 
-## Start of every session — required
-1. Read CLAUDE.md in full
+## HANDOFF.md content rule
+HANDOFF is a state snapshot, not a planning document.
+
+Belongs in HANDOFF: what was completed, what's broken right now, next session start steps, key files changed.
+
+Belongs in CLAUDE.md: roadmap, session plans, design decisions, process rules, phase prerequisites.
+
+If a HANDOFF section exceeds ~50 lines, content has drifted into planning territory — move forward-looking content to CLAUDE.md.
+
+## Credentials rule
+Never display service account JSON contents in any context — chat, screenshots, terminal output. Verify file shape only:
+- `Test-Path <path>` (true/false)
+- `(Get-Content <path> -Raw).Length` (character count)
+- `(Get-Content <path> -Raw).Substring(0,1)` (single character)
+
+Never use `Get-Content <path>` or `-TotalCount 1` (compact JSON = whole file on one line).
+
+## End of every session
+1. Update CLAUDE.md with any new decisions
+2. Overwrite HANDOFF.md (state only, not plans)
+3. Verify before carrying forward any "What is broken" bullet — drop if resolved, don't propagate stale bullets
+
+## Start of every session
+1. Read CLAUDE.md
 2. Read HANDOFF.md
-3. For UI/CSS sessions — also read CLAUDE-DESIGN.md
-4. Confirm with Rob: what are we building today?
+3. Read CLAUDE-DESIGN.md for UI/CSS sessions
+4. Confirm with Rob what we're building today
+
+---
+
+## Local development environment
+Rob's Windows 11 machine is set up for scripts that need Firestore admin access (one-time migrations, audits).
+
+- Repo: C:\Users\rjohn\Code\Home-School-Planner
+- Service account JSON: C:\Users\rjohn\Downloads\firebase-service-account.json
+- Node.js ≥ 18, Git installed
+
+Pattern: Claude writes script under scripts/ (own private package.json). Rob pulls, cd's to scripts/, runs npm install, sets `$env:GOOGLE_APPLICATION_CREDENTIALS`, runs DRY_RUN=true first, then live. Claude Code follow-up deletes script.
+
+The Claude Code sandbox cannot reach Firestore. Any script needing live Firestore access runs from Rob's machine.
 
 ---
 
 ## Branch strategy
-Always work directly on main. Never create feature branches.
-Commit and push after each confirmed working step.
-Netlify auto-deploys on every push to main.
-Do not open pull requests. Do not create branches named claude/* or feature/*.
+Always work directly on main. Never create feature branches. Commit and push after each working step. Netlify auto-deploys on push to main. No PRs, no claude/* or feature/* branches.
 
-## Netlify build — final confirmed config
+## Netlify build (do not change without Rob's instruction)
 - No base directory
-- Command: npm install && npm run build (runs from repo root)
+- Command: npm install && npm run build (from repo root)
 - Publish: dist
-- Do not change without Rob's explicit instruction
 
 ---
 
-## Key decisions — do not revisit without Rob's explicit instruction
-- Monorepo, single Netlify site
-- homeschool.grasphislove.com is primary domain
-- Firebase only, Google sign-in only — single family account
-- Desktop breakpoint: 810px (raised from 768px — S25 Ultra compatibility)
-- Large phone scaling band: 400–809px bounded
-- No max-width on mobile — content fills viewport width
-- allday key (not __allday__) — Firestore rejects double-underscore
-- weekId always Monday — mondayWeekId() in constants/days.js
-- collectionGroup('subjects') for backup/restore — uid doc does not exist
-- Firestore collectionGroup subjects read rule must never be removed
-- Reward tracker and TE Extractor were removed in v0.30.0 — the planner is a pure lesson planning + academic records tool. Shell tab order is exactly Home / Planner / Records / Settings.
-- CalendarImportSheet and CurriculumImportSheet still call Anthropic API directly from browser using VITE_ANTHROPIC_API_KEY — Netlify Function proxy caused 60 s timeouts.
-- Unified Settings tab owns all settings
+## Key decisions — do not revisit without Rob's instruction
+- Monorepo, single Netlify site, homeschool.grasphislove.com primary
+- Firebase + Google sign-in only; single family today, multi-family Phase 4
+- Desktop breakpoint 810px (raised from 768px for S25 Ultra)
+- Large phone band 400–809px bounded
+- No max-width on mobile
+- allday key (Firestore rejects __allday__)
+- weekId always Monday via mondayWeekId()
+- collectionGroup('subjects') for backup/restore + dashboard query
+- collectionGroup('settings') for user discovery
+- R2 read rule never removed (collectionGroup support); uid-scoping is Phase 4 work
+- Reward Tracker + TE Extractor removed v0.30.0; tabs are exactly Home/Planner/Records/Settings
+- CalendarImportSheet + CurriculumImportSheet call Anthropic directly (Netlify proxy timeouts)
+- Settings tab owns settings except compliance (Compliance lives in Records as Quick Action sheet)
 - Student state lifted to App.jsx
-- CLAUDE.md, CLAUDE-DESIGN.md, CLAUDE-HISTORY.md all exempt from 300-line rule
-- Work directly on main always — no feature branches
+- Work directly on main, no feature branches
 - 300-line hard limit per source file
 - Grade entry saves both percent + letter
-- Attendance = weekdays − breaks − sick days
-- pdf-lib for browser-side PDF generation
-- Firebase Storage for saved report PDFs — path: users/{uid}/reports/
-- Student stored as name string (Phase 4: migrate to profile docs)
-- Cascading deletes not implemented — console.warn fires on parent deletes
-- Home tab: tappable mobile / expanded desktop per-student cards
-- Restore from Backup uses diff engine — user reviews conflicts before applying
-- Full Restore (Factory Reset) wipes all data then restores — two-step confirmation
+- Attendance currently calendar math (weekdays − breaks − sick days); Session 5 swaps to per-student compliance count when daysEnabled
+- pdf-lib for PDF generation; Firebase Storage for saved report PDFs (users/{uid}/reports/)
+- Student stored as name string (Phase 4 migrates to profile docs)
+- Cascading deletes not implemented (console.warn on parent deletes)
+- Restore from Backup uses diff engine; Full Restore is two-step confirmation
 - Backup export filename uses email username + date
-- useSickDay hook owns sick day Firestore listener — Undo button driven by Firestore not local state
-- Sick day Friday overflow handling is deferred until the month view ships — when Friday has any non-allday lesson at confirm time, FridayComingSoonSheet opens BEFORE any Firestore write. Confirm Sick Day deletes Friday's lessons and runs the cascade; Cancel leaves Firestore untouched.
-- Sick day confirm auto-writes a "Sick Day" All Day Event — { lesson: 'Sick Day', note: '', done: false, flag: false } at the 'allday' key for the sick column, only if no allday cell already exists there. Undo Sick Day deletes that auto-written allday cell (skipped if the user had placed their own custom allday).
-- Mobile multi-select is mobile-only (≤809px) — long-press 500ms on a SubjectCard enters select mode; MultiSelectBar replaces the bottom nav at z-index 110 and PlannerActionBar is hidden while select mode is active. Actions: Select All, Mark Done (toggles based on whether all selected are already done), Move to Day (picker showing the 4 other days), Delete (two-tap confirm with 3s auto-reset), Cancel. The 'allday' card is never selectable. All multi-select state lives in useMultiSelect; BottomNav.jsx is never modified.
+- useSickDay hook owns sick-day Firestore listener; Undo driven by Firestore not local state
+- Sick day Friday overflow: FridayComingSoonSheet opens before any write when Friday has lessons; deferred until month view
+- Sick day confirm auto-writes "Sick Day" allday cell (skipped if user placed custom allday); Undo deletes auto-written cell only
+- Mobile multi-select (≤809px): long-press 500ms enters select mode; MultiSelectBar replaces bottom nav at z-index 110; 'allday' never selectable; state in useMultiSelect hook; BottomNav.jsx never modified
+- Compliance is per-student (required values, hours logging, day counts); starting values family-wide
+- Phase 3 expand-then-contract migration v0.32.1: settings/compliance has both old top-level fields AND new requiredByStudent map; old fields deleted in Session 4.4
