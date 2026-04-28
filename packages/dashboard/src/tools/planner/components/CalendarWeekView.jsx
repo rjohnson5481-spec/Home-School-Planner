@@ -51,7 +51,7 @@ function CalendarHoursInput({ dateString, hours, onSave, onFlush }) {
   }
   return (
     <input
-      className="cwv-col-hours-input"
+      className="cwv-hours-input"
       type="number" inputMode="decimal" step="0.5" min="0"
       placeholder="0.0"
       value={value}
@@ -172,6 +172,7 @@ export default function CalendarWeekView({
         <button className="cwv-add-btn" onClick={() => onAddSubject(0)}>+ Add Lesson</button>
       </div>
       <DndContext key={weekId} sensors={sensors} collisionDetection={pointerWithin} onDragStart={e => setActiveId(e.active.id)} onDragEnd={handleDragEnd}>
+        <div className="cwv-calendar">
         <div className="cwv-grid">
           {[0, 1, 2, 3, 4].map(di => {
             const date = weekDates[di];
@@ -219,24 +220,31 @@ export default function CalendarWeekView({
                       </DraggableCard>
                     );
                   })}
-                </DroppableCol>
-                <div className="cwv-col-foot">
                   <button className="cwv-col-add" onClick={() => onAddSubject(di)}>+ add</button>
-                  {hoursEnabled && date && (
-                    <div className="cwv-col-hours">
-                      <span className="cwv-col-hours-label">Hrs:</span>
-                      <CalendarHoursInput
-                        dateString={toWeekId(date)}
-                        hours={hoursByDate?.[toWeekId(date)]}
-                        onSave={onSaveHours}
-                        onFlush={onFlushHours}
-                      />
-                    </div>
-                  )}
-                </div>
+                </DroppableCol>
               </div>
             );
           })}
+        </div>
+        {hoursEnabled && (
+          <div className="cwv-hours-bar">
+            {weekDates.map((date, i) => {
+              if (!date) return null;
+              const ds = toWeekId(date);
+              return (
+                <div key={ds} className="cwv-hours-cell">
+                  <span className="cwv-hours-label">HRS</span>
+                  <CalendarHoursInput
+                    dateString={ds}
+                    hours={hoursByDate?.[ds]}
+                    onSave={onSaveHours}
+                    onFlush={onFlushHours}
+                  />
+                </div>
+              );
+            })}
+          </div>
+        )}
         </div>
       </DndContext>
     </div>
