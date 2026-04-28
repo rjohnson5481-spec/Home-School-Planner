@@ -1,5 +1,5 @@
 # CLAUDE.md — Iron & Light Johnson Academy Homeschool Tools
-Current version: v0.31.4 — milestone: Phase 3 — School Days compliance Sessions 1–3 (settings + hours input + Records relocation + sheet pattern)
+Current version: v0.32.0 — milestone: Phase 3 — School Days compliance Sessions 1–4 (settings + hours input + Records relocation + dashboard)
 
 ## What this repo is
 A monorepo housing all digital tools for Iron & Light Johnson Academy.
@@ -210,7 +210,7 @@ Desktop changes are always additive via @media (min-width: 810px) — never modi
 
 ---
 
-## Tools status (v0.31.4)
+## Tools status (v0.32.0)
 - shared            → ✅ Complete
 - dashboard shell   → ✅ Complete — 4-tab nav (Home / Planner / Records / Settings), dynamic students, dark mode
 - Home Tab          → ✅ Complete — per-student cards, tappable/expanded, attendance
