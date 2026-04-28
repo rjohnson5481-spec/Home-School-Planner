@@ -111,6 +111,26 @@
 }
 .sc-input:focus { border-color: var(--gold); }
 
+/* ── Per-student rows + group label (Session 4.4) ── */
+.sc-group-label {
+  font-size: 11px; font-weight: 600; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--text-secondary);
+  margin: 0 0 4px;
+}
+.sc-student-row {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; padding: 4px 0;
+}
+.sc-student-name { font-size: 14px; color: var(--text-primary); }
+.sc-student-row .sc-input { width: 100px; }
+
+.sc-empty {
+  padding: 16px 14px; margin-bottom: 12px;
+  background: var(--bg-card); border: 1px dashed var(--border);
+  border-radius: 8px; text-align: center;
+  font-size: 13px; color: var(--text-muted); font-style: italic;
+}
+
 @media (min-width: 400px) and (max-width: 809px) {
   .cs-sheet-title { font-size: 17px; }
   .cs-sheet-body  { padding: 20px; }
@@ -118,4 +138,7 @@
   .sc-field-label { font-size: 13px; }
   .sc-field-help  { font-size: 12px; }
   .sc-input       { font-size: 15px; padding: 8px 10px; width: 140px; }
+  .sc-student-row .sc-input { width: 110px; }
+  .sc-student-name { font-size: 15px; }
+  .sc-empty       { font-size: 14px; }
 }

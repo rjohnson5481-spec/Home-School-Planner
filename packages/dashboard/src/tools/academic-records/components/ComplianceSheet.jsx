@@ -1,46 +1,89 @@
 import { useState, useEffect, useRef } from 'react';
+import { doc, onSnapshot, deleteField } from 'firebase/firestore';
+import { db } from '@homeschool/shared';
 import { subscribeCompliance, saveCompliance } from '../../../firebase/compliance.js';
 import { COMPLIANCE_DEFAULTS } from '../../../constants/compliance.js';
 import './ComplianceSheet.css';
 
 const SAVE_DEBOUNCE_MS = 500;
 
-// Bottom sheet for configuring School Days Compliance — pattern matches
-// CourseCatalogSheet exactly. Open/close state lives in AcademicRecordsTab.
-//
-// Props:
-//   open    — boolean, parent unmounts on false
-//   onClose — () => void, dismisses the sheet
-//   uid     — Firebase auth uid for the compliance settings doc
+// Per-student compliance configuration sheet. Open/close lives in
+// AcademicRecordsTab. Each input handler queues a granular partial-update;
+// the accumulated patch flushes to Firestore 500ms after the last change.
+// Every save also includes deleteField() for the deprecated top-level
+// requiredDays / requiredHours — the lazy contract half of the Session 4.1
+// expand-then-contract migration. Idempotent once the fields are gone.
 export default function ComplianceSheet({ open, onClose, uid }) {
-  const [settings, setSettings] = useState(COMPLIANCE_DEFAULTS);
-  const [dirty, setDirty]       = useState(null);
-  const saveTimer               = useRef(null);
+  const [settings, setSettings]       = useState(COMPLIANCE_DEFAULTS);
+  const [students, setStudents]       = useState([]);
+  const [pendingPatch, setPendingPatch] = useState(null);
+  const saveTimer                     = useRef(null);
 
   useEffect(() => {
     if (!uid) return;
     return subscribeCompliance(uid, setSettings);
   }, [uid]);
 
-  // Debounced save: every patch resets the timer so rapid keystrokes
-  // collapse into a single Firestore write 500ms after the last change.
   useEffect(() => {
-    if (!uid || !dirty) return;
+    if (!uid) return;
+    return onSnapshot(doc(db, `users/${uid}/settings/students`), snap => {
+      setStudents(snap.exists() ? (snap.data().names ?? []) : []);
+    });
+  }, [uid]);
+
+  // Debounced save. Each handler accumulates into pendingPatch; the timer
+  // fires once 500ms after the last change with the merged partial.
+  useEffect(() => {
+    if (!uid || !pendingPatch) return;
     clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(() => {
-      saveCompliance(uid, dirty);
-      setDirty(null);
+      saveCompliance(uid, pendingPatch);
+      setPendingPatch(null);
     }, SAVE_DEBOUNCE_MS);
     return () => clearTimeout(saveTimer.current);
-  }, [dirty, uid]);
+  }, [pendingPatch, uid]);
 
-  function update(patch) {
-    const next = { ...settings, ...patch };
-    setSettings(next);
-    setDirty(next);
+  function queueSave(patch) {
+    setPendingPatch(prev => ({
+      ...(prev ?? {}),
+      ...patch,
+      // Lazy contract migration — idempotent once the fields are gone.
+      requiredDays: deleteField(),
+      requiredHours: deleteField(),
+    }));
+  }
+
+  // Scalar setter for top-level fields (toggles + starting values).
+  function setField(key, value) {
+    setSettings(prev => ({ ...prev, [key]: value }));
+    queueSave({ [key]: value });
+  }
+  function handleRequiredDays(name, value) {
+    const num = parseInt(value, 10) || 0;
+    setSettings(prev => ({
+      ...prev,
+      requiredByStudent: {
+        ...(prev.requiredByStudent ?? {}),
+        [name]: { ...(prev.requiredByStudent?.[name] ?? {}), requiredDays: num },
+      },
+    }));
+    queueSave({ [`requiredByStudent.${name}.requiredDays`]: num });
+  }
+  function handleRequiredHours(name, value) {
+    const num = parseFloat(value) || 0;
+    setSettings(prev => ({
+      ...prev,
+      requiredByStudent: {
+        ...(prev.requiredByStudent ?? {}),
+        [name]: { ...(prev.requiredByStudent?.[name] ?? {}), requiredHours: num },
+      },
+    }));
+    queueSave({ [`requiredByStudent.${name}.requiredHours`]: num });
   }
 
   if (!open) return null;
+
+  const noStudents = students.length === 0;
 
   return (
     <div className="cs-sheet-overlay" onClick={onClose}>
@@ -57,6 +100,11 @@ export default function ComplianceSheet({ open, onClose, uid }) {
             Track required school days and hours against your state's
             requirements. Both metrics are independent — enable either or both.
           </p>
+
+          {noStudents && (
+            <div className="sc-empty">Add students in Settings to configure compliance.</div>
+          )}
+
           <div className="st-card">
             <div className="st-row">
               <span className="st-row-icon">📆</span>
@@ -66,24 +114,27 @@ export default function ComplianceSheet({ open, onClose, uid }) {
               </div>
               <button
                 className={`st-toggle${settings.daysEnabled ? ' st-toggle--on' : ''}`}
-                onClick={() => update({ daysEnabled: !settings.daysEnabled })}
+                onClick={() => setField('daysEnabled', !settings.daysEnabled)}
                 aria-label="Toggle days tracking"
                 aria-pressed={settings.daysEnabled}
               />
             </div>
-            {settings.daysEnabled && (
+            {settings.daysEnabled && !noStudents && (
               <div className="sc-fields">
-                <label className="sc-field">
-                  <span className="sc-field-label">Required days per school year</span>
-                  <input type="number" min="0" step="1" className="sc-input"
-                    value={settings.requiredDays}
-                    onChange={e => update({ requiredDays: parseInt(e.target.value, 10) || 0 })} />
-                </label>
+                <div className="sc-group-label">Required days per school year</div>
+                {students.map(name => (
+                  <div key={name} className="sc-student-row">
+                    <span className="sc-student-name">{name}</span>
+                    <input type="number" min="0" step="1" className="sc-input"
+                      value={settings.requiredByStudent?.[name]?.requiredDays ?? 0}
+                      onChange={e => handleRequiredDays(name, e.target.value)} />
+                  </div>
+                ))}
                 <label className="sc-field">
                   <span className="sc-field-label">Starting days completed</span>
                   <input type="number" min="0" step="1" className="sc-input"
-                    value={settings.startingDays}
-                    onChange={e => update({ startingDays: parseInt(e.target.value, 10) || 0 })} />
+                    value={settings.startingDays ?? 0}
+                    onChange={e => setField('startingDays', parseInt(e.target.value, 10) || 0)} />
                   <span className="sc-field-help">
                     Total school days you have already completed this school
                     year before enabling tracking. Leave at 0 if you have been
@@ -101,24 +152,27 @@ export default function ComplianceSheet({ open, onClose, uid }) {
               </div>
               <button
                 className={`st-toggle${settings.hoursEnabled ? ' st-toggle--on' : ''}`}
-                onClick={() => update({ hoursEnabled: !settings.hoursEnabled })}
+                onClick={() => setField('hoursEnabled', !settings.hoursEnabled)}
                 aria-label="Toggle hours tracking"
                 aria-pressed={settings.hoursEnabled}
               />
             </div>
-            {settings.hoursEnabled && (
+            {settings.hoursEnabled && !noStudents && (
               <div className="sc-fields">
-                <label className="sc-field">
-                  <span className="sc-field-label">Required hours per school year</span>
-                  <input type="number" min="0" step="0.5" className="sc-input"
-                    value={settings.requiredHours}
-                    onChange={e => update({ requiredHours: parseFloat(e.target.value) || 0 })} />
-                </label>
+                <div className="sc-group-label">Required hours per school year</div>
+                {students.map(name => (
+                  <div key={name} className="sc-student-row">
+                    <span className="sc-student-name">{name}</span>
+                    <input type="number" min="0" step="0.5" className="sc-input"
+                      value={settings.requiredByStudent?.[name]?.requiredHours ?? 0}
+                      onChange={e => handleRequiredHours(name, e.target.value)} />
+                  </div>
+                ))}
                 <label className="sc-field">
                   <span className="sc-field-label">Starting hours completed</span>
                   <input type="number" min="0" step="0.5" className="sc-input"
-                    value={settings.startingHours}
-                    onChange={e => update({ startingHours: parseFloat(e.target.value) || 0 })} />
+                    value={settings.startingHours ?? 0}
+                    onChange={e => setField('startingHours', parseFloat(e.target.value) || 0)} />
                   <span className="sc-field-help">
                     Total school hours you have already completed this school
                     year before enabling tracking. Enter your aggregate total
