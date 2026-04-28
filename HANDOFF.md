@@ -1,36 +1,29 @@
-# HANDOFF — v0.32.4 Phase 3 Session 4.4: Per-student ComplianceSheet + lazy contract migration
+# HANDOFF — v0.32.5 Phase 3 Session 4.5: Per-student planner hours input
 
 ## What was completed this session
-- Phase 3 Session 4.4: ComplianceSheet form reworked
-  to per-student inputs (Option α layout — single
-  group label + per-student sub-rows for required
-  days/hours).
-- Starting days/hours stay family-wide single inputs.
-- Save logic moved to granular nested-field-path
-  writes ('requiredByStudent.{name}.requiredDays')
-  via updateDoc partial-update payloads.
-- saveCompliance helper became a thin updateDoc
-  wrapper accepting partial objects (supports
-  deleteField sentinels for nested-path deletions).
-- Lazy contract migration: every save includes
-  deleteField() for the deprecated top-level
-  requiredDays / requiredHours. Idempotent — no-op
-  once gone.
-- Empty-state copy when settings/students.names is
-  empty.
-- File sizes: ComplianceSheet.jsx 135 → 189 (under
-  200 target), .css 121 → 144 (under 150 target).
-- CLAUDE.md compliance data model note updated to
-  reflect lazy contract migration.
-- Verified end-to-end in Firebase Console: deprecated
-  top-level fields removed on first save; per-student
-  writes target correct paths.
-
-Also captured in this snapshot — Session 4.3 (v0.32.3,
-shipped just before this session): useComplianceSummary
-returns per-student maps (daysCompletedByStudent,
-hoursCompletedByStudent, requiredByStudent). Hook
-still has zero consumers until Sessions 4.5 and 5.
+- Phase 3 Session 4.5: planner hours input reworked
+  to read and write per-student data.
+- saveSchoolDayHours now writes
+  hoursByStudent.{student}: value using setDoc +
+  merge:true (creates doc if missing, preserves
+  other students' hours on the same day).
+- useCompliance reads hoursByStudent[student] for
+  the currently-selected student (treats undefined
+  as 0). Added student to hook signature and dep
+  arrays. if (!student) guard added.
+- PlannerLayout threads student to useCompliance.
+- HoursInputRow (mobile) + CalendarWeekView
+  (desktop) renamed hoursLogged prop to hours for
+  semantic accuracy. No behavior change.
+- constants/compliance.js data-model comment updated
+  to reflect current per-student shapes.
+- grep hoursLogged packages/: zero matches.
+- No visual UI changes — input placement, debounce,
+  and hoursEnabled gate unchanged.
+- Verified in Firebase Console: per-student writes
+  land correctly at hoursByStudent.{name};
+  merge:true creates new docs and preserves other
+  students on the same day.
 
 ## What is broken or incomplete
 Apply verify-before-carry-forward.
@@ -43,11 +36,17 @@ Apply verify-before-carry-forward.
 - Calendar import duplicate-subject bug
 - Sick day cascade all-day-event bug
 - Firestore subjects.done index auto-creation note
-- Firebase data cleanup TODO from 2026-04-26 backup audit
+- Firebase data cleanup TODO from 2026-04-26 backup
+  audit (subjectLists, teExtractor, rewardTracker
+  collections also visible in console — stale,
+  manual cleanup only)
 
-Phase 3 mid-rework: hook + sheet UI done. Sessions
-4.5 and 5 still pending. See CLAUDE.md for the
-rework session plan.
+Phase 3: all per-student data-write surfaces done.
+Session 5 is the final session — integration sweep
+that switches Records Attendance card and Home
+per-student progress rows to source from
+useComplianceSummary instead of calendar math when
+daysEnabled is true. See CLAUDE.md for the plan.
 
 Phase 4 multi-family launch readiness — still
 required before any external testing family signs in.
@@ -56,17 +55,19 @@ See CLAUDE.md for prerequisite cluster.
 ## Next session must start with
 1. Read CLAUDE.md and HANDOFF.md
 2. Verify on main, pull latest
-3. Begin Session 4.5 (rework planner hours input to
-   write per-student data via
-   schoolDays/{date}.hoursByStudent[student] for the
-   currently-selected student) per CLAUDE.md rework
-   plan
+3. Begin Session 5: Records Attendance card sources
+   from daysCompletedByStudent[selectedStudent] when
+   daysEnabled. Home per-student progress row sources
+   from same. Calendar math stays as fallback when
+   daysEnabled is false.
 
 ## Key files changed recently
 - packages/dashboard/src/firebase/compliance.js
-- packages/dashboard/src/tools/academic-records/components/ComplianceSheet.jsx
-- packages/dashboard/src/tools/academic-records/components/ComplianceSheet.css
-- packages/dashboard/src/hooks/useComplianceSummary.js (Session 4.3)
+- packages/dashboard/src/constants/compliance.js
+- packages/dashboard/src/tools/planner/hooks/useCompliance.js
+- packages/dashboard/src/tools/planner/components/PlannerLayout.jsx
+- packages/dashboard/src/tools/planner/components/HoursInputRow.jsx
+- packages/dashboard/src/tools/planner/components/CalendarWeekView.jsx
 - packages/dashboard/package.json
 - packages/shared/package.json
 - CLAUDE.md
