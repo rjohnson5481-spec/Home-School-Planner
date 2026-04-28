@@ -2,8 +2,10 @@ import { useState } from 'react';
 import { useAuth } from '@homeschool/shared';
 import logo from '@homeschool/shared/assets/logo.png';
 import { useHomeSummary } from '../hooks/useHomeSummary.js';
+import { useComplianceSummary } from '../hooks/useComplianceSummary.js';
 import { updateCell } from '../tools/planner/firebase/planner.js';
 import StudentDetailSheet from './StudentDetailSheet.jsx';
+import ComplianceCard from '../components/ComplianceCard.jsx';
 import './HomeTab.css';
 import './HomeHeader.css';
 
@@ -14,10 +16,11 @@ function greetingForHour(hour) {
   return 'Good Night';
 }
 
-export default function HomeTab({ onTabChange }) {
+export default function HomeTab({ setActiveTab, setPendingRecordsAction }) {
   const { user } = useAuth();
   const uid = user?.uid;
   const { students, lessonsByStudent, attendance, weekId, dayIndex, todayLabel } = useHomeSummary(uid);
+  const complianceSummary = useComplianceSummary(uid);
   const [openSheet, setOpenSheet] = useState(null);
   const greeting = greetingForHour(new Date().getHours());
 
@@ -46,6 +49,9 @@ export default function HomeTab({ onTabChange }) {
           <span className="home-date">{todayLabel}</span>
           <span className="home-greeting">{greeting}</span>
         </div>
+
+        <ComplianceCard summary={complianceSummary} variant="home"
+          onCardClick={() => { setActiveTab?.('academic'); setPendingRecordsAction?.('compliance'); }} />
 
         <div className="home-students">
           {students.map(name => {
