@@ -28,10 +28,6 @@ export default function HomeTab() {
     updateCell(uid, weekId, student, subject, di, { done: !currentDone });
   }
 
-  // Reward tracker removed in v0.30.0 — the StudentDetailSheet Quick Award
-  // button is now an orphaned no-op until that UI is removed.
-  function handleAwardPoints() {}
-
   return (
     <div className="home-tab">
       <header className="home-header">
@@ -126,7 +122,7 @@ export default function HomeTab() {
           student={name} lessons={lessonsByStudent[name] ?? []}
           attendance={attendance[name]}
           uid={uid} weekId={weekId}
-          onLessonToggle={handleLessonToggle} onAwardPoints={handleAwardPoints} />
+          onLessonToggle={handleLessonToggle} />
       ))}
     </div>
   );

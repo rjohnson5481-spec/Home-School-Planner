@@ -142,14 +142,6 @@ export default function SettingsTab({ user, colorMode, onToggleDarkMode }) {
                   )}
                 </div>
               )}
-              <div className="st-row">
-                <span className="st-row-icon">📅</span>
-                <div className="st-row-body">
-                  <span className="st-row-title">School Year</span>
-                  <span className="st-row-sub">Track academic year + ND compliance</span>
-                </div>
-                <span className="st-badge">Coming Soon</span>
-              </div>
             </div>
           </section>
         </div>

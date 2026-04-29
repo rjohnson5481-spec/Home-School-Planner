@@ -1,7 +1,7 @@
 import './StudentDetailSheet.css';
 
 export default function StudentDetailSheet({
-  open, onClose, student, lessons, attendance, points,
+  open, onClose, student, lessons, attendance,
   onLessonToggle,
 }) {
   if (!open) return null;
@@ -10,7 +10,6 @@ export default function StudentDetailSheet({
   const doneLessons  = (lessons ?? []).filter(l => l.done).length;
   const att = attendance ?? { attended: 0, required: 175, sick: 0, breakDays: 0 };
   const attPct = att.required > 0 ? Math.min(100, Math.round((att.attended / att.required) * 100)) : 0;
-  const pts = points ?? { points: 0, cashValue: '0.00' };
 
   return (
     <div className="sds-sheet-overlay" onClick={onClose}>
@@ -20,7 +19,6 @@ export default function StudentDetailSheet({
           <div className="sds-header-left">
             <span className="sds-header-name">{student}</span>
           </div>
-          <span className="sds-header-pts">{pts.points} pts</span>
           <button className="sds-sheet-close" onClick={onClose} aria-label="Close">✕</button>
         </header>
         <div className="sds-sheet-body">
