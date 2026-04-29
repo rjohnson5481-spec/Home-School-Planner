@@ -3,10 +3,7 @@ import { useState, useEffect } from 'react';
 import Header          from './Header.jsx';
 import DayStrip        from './DayStrip.jsx';
 import SubjectCard     from './SubjectCard.jsx';
-import EditSheet       from './EditSheet.jsx';
-import UploadSheet     from './UploadSheet.jsx';
-import AddSubjectSheet from './AddSubjectSheet.jsx';
-import MonthSheet      from './MonthSheet.jsx';
+import PlannerSheets   from './PlannerSheets.jsx';
 import CalendarWeekView from './CalendarWeekView.jsx';
 import PlannerActionBar from './PlannerActionBar.jsx';
 import SickDayManager  from './SickDayManager.jsx';
@@ -226,28 +223,11 @@ export default function PlannerLayout({
         />
       )}
 
-      {editTarget && (
-        <EditSheet subject={editTarget.subject} data={dayData[editTarget.subject]}
-          onSave={data => { updateCell(editTarget.subject, editTarget.day, data); setEditTarget(null); }}
-          onDelete={() => { removeSubject(editTarget.subject); setEditTarget(null); }}
-          onClose={() => setEditTarget(null)} />
-      )}
-      {showUpload && (
-        <UploadSheet pdfImport={pdfImport} onApply={handleApplySchedule}
-          onConfirmImport={handleConfirmImport}
-          onClose={() => { setShowUpload(false); pdfImport.reset(); }} />
-      )}
-      {showAddSubject && (
-        <AddSubjectSheet existingSubjects={subjects} presets={plannerSubjects}
-          weekDates={weekDates} currentDayIndex={day} currentStudent={student} students={students}
-          onAdd={handleBatchAddSubject}
-          onAddAllDay={(name, note) => { updateCell('allday', day, { lesson: name, note, done: false, flag: false }); setShowAddSubject(false); }}
-          onEditAllDay={() => { setShowAddSubject(false); setEditTarget({ subject: 'allday', day }); }}
-          onClose={() => setShowAddSubject(false)} />
-      )}
-      {showMonthPicker && (
-        <MonthSheet weekId={weekId} onSelectDay={handleMonthDaySelect} onClose={() => setShowMonthPicker(false)} />
-      )}
+      <PlannerSheets
+        editTarget={editTarget} dayData={dayData} updateCell={updateCell} removeSubject={removeSubject} setEditTarget={setEditTarget}
+        showUpload={showUpload} pdfImport={pdfImport} handleApplySchedule={handleApplySchedule} handleConfirmImport={handleConfirmImport} setShowUpload={setShowUpload}
+        showAddSubject={showAddSubject} subjects={subjects} plannerSubjects={plannerSubjects} weekDates={weekDates} day={day} student={student} students={students} handleBatchAddSubject={handleBatchAddSubject} setShowAddSubject={setShowAddSubject}
+        showMonthPicker={showMonthPicker} weekId={weekId} handleMonthDaySelect={handleMonthDaySelect} setShowMonthPicker={setShowMonthPicker} />
 
       <SickDayManager
         subjects={subjects} dayData={dayData} day={day}
