@@ -93,6 +93,9 @@
 
 /* ── Hide existing desktop week nav when calendar view is active ── */
 @media (min-width: 810px) {
+  /* Clears the 60px fixed action bar (bottom: 0) + 8px buffer. */
+  .cwv-wrap { padding-bottom: 68px; }
+
   .cwv-active .planner-week-nav-desktop { display: none; }
   .cwv-active .planner-day-header { display: none; }
   .cwv-active .day-strip { display: none; }
