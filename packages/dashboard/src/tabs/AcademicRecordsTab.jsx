@@ -190,6 +190,7 @@ export default function AcademicRecordsTab() {
         handleCalendarImport={handleCalendarImport} activeSchoolYear={summary.activeSchoolYear}
         attendanceDetailOpen={attendanceDetailOpen} closeAttendanceDetail={() => setAttendanceDetailOpen(false)}
         attendanceDays={summary.attendanceDays} selectedStudent={selectedStudent}
+        complianceSummary={complianceSummary}
         reportCardOpen={reportCardOpen} closeReportCard={() => setReportCardOpen(false)}
         saveReport={saveReport} reportNotes={reportNotes} saveNote={saveNote} activities={activities}
         savedReportsOpen={savedReportsOpen} closeSavedReports={() => setSavedReportsOpen(false)}

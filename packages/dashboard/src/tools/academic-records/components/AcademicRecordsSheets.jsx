@@ -48,7 +48,7 @@ export default function AcademicRecordsSheets(p) {
         yearLabel={p.activeSchoolYear?.label} existingBreaks={p.activeSchoolYear?.breaks ?? []} />
       <AttendanceDetailSheet open={p.attendanceDetailOpen} onClose={p.closeAttendanceDetail}
         attendanceDays={p.attendanceDays} schoolYearLabel={p.activeSchoolYear?.label ?? '—'}
-        student={p.selectedStudent} />
+        student={p.selectedStudent} complianceSummary={p.complianceSummary} />
       <ReportCardGeneratorSheet open={p.reportCardOpen} onClose={p.closeReportCard}
         onSaveReport={p.saveReport} student={p.selectedStudent} students={p.students}
         activeSchoolYear={p.activeSchoolYear} selectedQuarterId={p.selectedQuarterId}

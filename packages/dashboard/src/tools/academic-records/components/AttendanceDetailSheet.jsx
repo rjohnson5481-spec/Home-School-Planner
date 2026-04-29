@@ -1,22 +1,22 @@
 import './AttendanceDetailSheet.css';
 
-// Bottom sheet showing full attendance detail for the active school year.
-// Replaces the large attendance card that was removed from RecordsMainView.
-//
-// Props:
-//   open            — boolean
-//   onClose         — () => void
-//   attendanceDays  — { attended, sick, breakDays, schoolDays, required: 175 }
-//   schoolYearLabel — string, e.g. "2025–2026"
-//   student         — string, selected student name
-
 export default function AttendanceDetailSheet({
-  open, onClose, attendanceDays, schoolYearLabel, student,
+  open, onClose, attendanceDays, schoolYearLabel, student, complianceSummary,
 }) {
   if (!open) return null;
 
   const { attended, sick, breakDays, schoolDays, required } = attendanceDays;
-  const pct = required > 0 ? Math.min(100, Math.round((attended / required) * 100)) : 0;
+
+  const useCompliance = !!complianceSummary?.daysEnabled;
+  const daysAttended = useCompliance
+    ? (complianceSummary.daysCompletedByStudent?.[student] ?? attended)
+    : attended;
+  const daysLabel = useCompliance ? 'Days Completed' : 'Days Attended';
+  const daysRequired = useCompliance
+    ? (complianceSummary.requiredByStudent?.[student]?.requiredDays ?? required)
+    : required;
+
+  const pct = daysRequired > 0 ? Math.min(100, Math.round((daysAttended / daysRequired) * 100)) : 0;
 
   return (
     <div className="ads-sheet-overlay" onClick={onClose}>
@@ -31,7 +31,7 @@ export default function AttendanceDetailSheet({
 
         <div className="ads-sheet-body">
 
-          <div className="ads-big-number">{attended}</div>
+          <div className="ads-big-number">{daysAttended}</div>
           <p className="ads-big-sub">days completed</p>
 
           <div className="ads-bar-track">
@@ -39,13 +39,13 @@ export default function AttendanceDetailSheet({
           </div>
           <div className="ads-bar-labels">
             <span>{pct}% complete</span>
-            <span>175 days required (ND)</span>
+            <span>of {daysRequired} days required</span>
           </div>
 
           <div className="ads-detail-rows">
             <div className="ads-detail-row">
-              <span className="ads-detail-label">Days Attended</span>
-              <span className="ads-detail-value">{attended}</span>
+              <span className="ads-detail-label">{daysLabel}</span>
+              <span className="ads-detail-value">{daysAttended}</span>
             </div>
             <div className="ads-detail-row">
               <span className="ads-detail-label">Sick Days</span>
@@ -63,7 +63,7 @@ export default function AttendanceDetailSheet({
             </div>
             <div className="ads-detail-row">
               <span className="ads-detail-label">Days Required</span>
-              <span className="ads-detail-value">{required}</span>
+              <span className="ads-detail-value">{daysRequired}</span>
             </div>
           </div>
 
